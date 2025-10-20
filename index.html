@@ -3,1076 +3,940 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Virtual Lab: Simulasi Sistem Kendali Dinamis</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Simulator Sistem Kendali Motor Listrik (Masterpiece Edition)</title>
+
+    <!-- Pustaka eksternal -->
+    <script src="https://cdn.plot.ly/plotly-2.29.1.min.js"></script>
     <script>
+        // Konfigurasi MathJax untuk merender persamaan LaTeX
         MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            },
-            svg: {
-                fontCache: 'global'
-            }
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
         };
     </script>
-    <script type="text/javascript" id="MathJax-script" async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
-    </script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
     <style>
+        /* Skema Warna & Font (Dark Theme) */
         :root {
-            --bg-primary: #0d1117;
-            --bg-secondary: #161b22;
-            --bg-tertiary: #21262d;
-            --border-color: #30363d;
-            --text-primary: #c9d1d9;
-            --text-secondary: #8b949e;
-            --accent-primary: #58a6ff;
-            --accent-secondary: #3fb950;
-            --accent-danger: #f85149;
-            --font-primary: 'Inter', sans-serif;
-            --font-mono: 'Roboto Mono', monospace;
+            --color-bg: #1e1e1e;
+            --color-bg-panel: #2a2a2a;
+            --color-container: #252526;
+            --color-border: #4a4a4a;
+            --color-text: #d4d4d4;
+            --color-text-dim: #9e9e9e;
+            --color-primary: #00aaff;
+            --color-secondary: #00ffaa;
+            --color-danger: #ff5577;
+            --color-warning: #ffee88;
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            --font-mono: 'Courier New', Courier, monospace;
         }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
+        
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-primary);
-            font-family: var(--font-primary);
+            font-family: var(--font-main);
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.6;
             margin: 0;
-            padding: 0;
-            line-height: 1.7;
-            font-size: 16px;
+            padding: 24px;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
+        h1, h2, h3 {
+            color: var(--color-primary);
+            border-bottom: 2px solid var(--color-border);
+            padding-bottom: 8px;
+            margin-top: 20px;
         }
+        
+        h1 { text-align: center; }
 
-        header {
-            text-align: center;
-            margin-bottom: 3rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 2rem;
-        }
-
-        header h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 0.5rem;
-        }
-
-        header p {
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .selection-grid {
+        /* Layout Utama Grid */
+        .main-container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 3rem;
-        }
-
-        .system-card {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1.5rem;
-            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-            cursor: pointer;
-        }
-
-        .system-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 24px rgba(88, 166, 255, 0.1);
-            border-color: var(--accent-primary);
-        }
-
-        .system-card h3 {
-            margin-top: 0;
-            color: var(--accent-primary);
-            font-size: 1.25rem;
-            margin-bottom: 1rem;
-        }
-
-        .system-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-bottom: 1.5rem;
-        }
-        
-        #sub-selection {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: center;
-            margin-bottom: 3rem;
-            padding-bottom: 2rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .sub-button {
-            background-color: var(--bg-tertiary);
-            color: var(--text-secondary);
-            border: 1px solid var(--border-color);
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            font-family: var(--font-primary);
-            font-size: 0.9rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .sub-button:hover {
-            background-color: var(--accent-primary);
-            color: var(--bg-primary);
-            border-color: var(--accent-primary);
-        }
-
-        .sub-button.active {
-            background-color: var(--accent-secondary);
-            color: var(--bg-primary);
-            border-color: var(--accent-secondary);
-            font-weight: 600;
-        }
-
-
-        #simulation-content {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.5s ease, transform 0.5s ease;
-        }
-        
-        #simulation-content.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .content-segment {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 2rem;
-        }
-        
-        .content-segment h2 {
-            font-size: 1.5rem;
-            color: var(--accent-primary);
-            margin-top: 0;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .two-column-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            align-items: center;
-        }
-        
-        .animation-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: var(--bg-primary);
-            border-radius: 6px;
-            padding: 1rem;
-            min-height: 250px;
-        }
-
-        .math-notation {
-            font-family: var(--font-mono);
-            background-color: var(--bg-primary);
-            padding: 1.5rem;
-            border-radius: 6px;
-            overflow-x: auto;
-        }
-        
-        .simulation-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 2rem;
-        }
-        
-        @media (min-width: 992px) {
-             .simulation-container {
-                grid-template-columns: 300px 1fr;
-            }
+            grid-template-columns: 420px 1fr;
+            gap: 24px;
+            max-width: 1800px;
+            min-height: 90vh;
+            margin: 20px auto;
+            background-color: var(--color-container);
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 1px solid var(--color-border);
+            overflow: hidden;
         }
 
         .controls-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+            padding: 24px;
+            border-right: 1px solid var(--color-border);
+            background-color: var(--color-bg-panel);
+            overflow-y: auto;
         }
 
+        .simulation-panel {
+            padding: 24px;
+            overflow-y: auto;
+        }
+
+        /* Kontrol UI (Slider, Details, dll) */
+        details {
+            margin-bottom: 20px;
+            background: var(--color-container);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+        }
+        
+        details[open] summary {
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        summary {
+            font-weight: bold;
+            font-size: 1.2em;
+            color: var(--color-primary);
+            padding: 12px;
+            cursor: pointer;
+            list-style: none; /* Hapus marker default */
+        }
+        
+        summary::-webkit-details-marker { display: none; } /* Chrome */
+        summary::marker { display: none; } /* Firefox */
+
+        summary:before {
+            content: '► ';
+            color: var(--color-primary);
+            margin-right: 8px;
+            transition: transform 0.2s ease-in-out;
+            display: inline-block;
+        }
+        
+        details[open] summary:before {
+            transform: rotate(90deg);
+        }
+        
         .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
+            padding: 16px;
         }
 
-        .control-group label {
-            font-weight: 500;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
+        .slider-container {
+            margin-bottom: 15px;
         }
-        
-        .control-group .value-display {
-            font-family: var(--font-mono);
-            color: var(--accent-secondary);
+
+        .slider-container label {
+            display: block;
             font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--color-text);
         }
         
-        .slider {
-            -webkit-appearance: none;
+        .slider-container label .symbol {
+            font-style: italic;
+            font-size: 1.1em;
+            color: var(--color-secondary);
+        }
+
+        .slider-container input[type="range"] {
             width: 100%;
-            height: 8px;
-            background: var(--bg-tertiary);
-            outline: none;
+            cursor: pointer;
+            accent-color: var(--color-primary);
+        }
+
+        .slider-container .value-display {
+            font-weight: bold;
+            color: var(--color-primary);
+            float: right;
+        }
+        
+        select, input[type="checkbox"] {
+            background-color: var(--color-bg-panel);
+            color: var(--color-text);
+            border: 1px solid var(--color-border);
             border-radius: 4px;
-            transition: opacity .2s;
+            padding: 5px;
+            margin-right: 5px;
         }
 
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: var(--accent-primary);
-            cursor: pointer;
-            border-radius: 50%;
-        }
-
-        .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: var(--accent-primary);
-            cursor: pointer;
-            border-radius: 50%;
-        }
-
-        #chart-container, #transient-chart-container {
-            position: relative;
-            height: 400px;
-            background-color: var(--bg-primary);
-            padding: 1rem;
-            border-radius: 6px;
+        /* Tampilan Persamaan (TF) */
+        .tf-display-box {
+            background: #1a1a1a;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
         }
         
-        .block-diagram-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .tf-display-box h3 {
+            margin-top: 0;
+        }
+
+        /* Analisis */
+        .analysis-box {
+            background: var(--color-bg-panel);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
         }
         
-        .block-diagram-container svg {
-            max-width: 100%;
-            height: auto;
-            background-color: var(--bg-secondary);
+        .analysis-box h3 {
+            margin-top: 0;
+            color: var(--color-secondary);
+        }
+        
+        .analysis-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .analysis-box th, .analysis-box td {
+            border-bottom: 1px solid var(--color-border);
+            padding: 8px;
+            text-align: left;
+        }
+        
+        .analysis-box th {
+            color: var(--color-text-dim);
+            font-size: 0.9em;
+        }
+        
+        .analysis-box td {
+            font-weight: bold;
+            font-family: var(--font-mono);
+            font-size: 1.1em;
+        }
+
+        .analysis-box ul {
+            list-style: none;
+            padding: 0;
+        }
+        .analysis-box li {
+            font-family: var(--font-mono);
+            font-size: 1.1em;
+            background: #333;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+        }
+        
+        .analysis-box .desc {
+            font-size: 0.9em;
+            color: var(--color-text-dim);
+            margin-top: 15px;
+            border-top: 1px dashed var(--color-border);
+            padding-top: 10px;
+        }
+
+        /* [BARU] Interpretation Box */
+        .interpretation-box {
+            background-color: #1c2a38;
+            border: 1px solid var(--color-primary);
+            border-left: 5px solid var(--color-primary);
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 24px;
+        }
+        .interpretation-box h3 {
+            color: var(--color-primary);
+            margin-top: 0;
+        }
+        .interpretation-box p {
+            margin-bottom: 15px;
+        }
+        .interpretation-box strong {
+            color: var(--color-secondary);
+        }
+        .interpretation-box code {
+            background-color: #333;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+        }
+        .interpretation-box .good { color: var(--color-secondary); }
+        .interpretation-box .bad { color: var(--color-danger); }
+        .interpretation-box .warn { color: var(--color-warning); }
+
+
+        /* Plotly Container */
+        #plot-container {
+            width: 100%;
+            height: 550px;
+            border: 1px solid var(--color-border);
             border-radius: 8px;
         }
 
-        #initial-message {
-            text-align: center;
-            padding: 4rem 0;
-            color: var(--text-secondary);
+        /* Penjelasan Teori */
+        .theory-box {
+            background-color: #2c2c1d;
+            border: 1px solid var(--color-warning);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            color: #f0f0f0;
         }
-        #initial-message h2 {
-             color: var(--text-primary);
+        .theory-box h2 {
+            color: var(--color-warning);
+            margin-top: 0;
         }
-
-        .explanation-box {
-            background-color: var(--bg-primary);
-            border-left: 4px solid var(--accent-secondary);
-            padding: 1rem 1.5rem;
-            margin-top: 1.5rem;
-            border-radius: 0 6px 6px 0;
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            min-height: 50px;
-        }
-        .explanation-box p {
-            margin: 0;
-        }
-        .explanation-box strong {
-            color: var(--text-primary);
-        }
-
+        
+        .hidden { display: none; }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <header>
-            <h1>Simulasi Sistem Kendali Dinamis</h1>
-            <p>Alat peraga interaktif untuk memahami konsep dasar sistem kendali pada berbagai implementasi di bidang teknik mesin.</p>
-        </header>
+    <div class="main-container">
+        
+        <div class="controls-panel">
+            <h1>Panel Simulator</h1>
 
-        <section id="system-selection">
-            <div class="selection-grid">
-                <div class="system-card" data-system="mechanical">
-                    <h3>Sistem Mekanik</h3>
-                    <p>Menganalisis sistem translasi dan rotasi yang melibatkan massa, pegas, dan peredam. Fondasi dari banyak sistem dinamis.</p>
+            <details open>
+                <summary>1. Sistem Plant (Motor)</summary>
+                <div class="control-group">
+                    <label for="plant-type" style="font-weight: bold;">Pilih Model Plant Motor:</label>
+                    <select id="plant-type" style="width: 100%;">
+                        <option value="1">a. Orde 1: Kendali Kecepatan (Induktansi La ≈ 0)</option>
+                        <option value="2">b. Orde 2: Kendali Posisi (Motor Orde 1)</option>
+                        <option value="3">c. Orde 2: Kendali Kecepatan (Induktansi La ≠ 0)</option>
+                    </select>
                 </div>
-                <div class="system-card" data-system="fluid">
-                    <h3>Sistem Fluida</h3>
-                    <p>Mempelajari dinamika fluida dalam tangki dan pipa, berfokus pada ketinggian, aliran, dan tekanan sebagai variabel sistem.</p>
+            </details>
+            
+            <details open>
+                <summary>2. Parameter Plant (G_p(s))</summary>
+                
+                <div id="params-k-tau" class="control-group">
+                    <div class="slider-container">
+                        <label for="k">Gain (<span class="symbol">K</span>): 
+                            <span class="value-display" id="k-val">2.0</span>
+                        </label>
+                        <input type="range" id="k" min="0.1" max="10.0" value="2.0" step="0.1">
+                    </div>
+                    <div class="slider-container">
+                        <label for="tau">Konstanta Waktu (<span class="symbol">&tau;</span>): 
+                            <span class="value-display" id="tau-val">0.5</span>
+                        </label>
+                        <input type="range" id="tau" min="0.1" max="5.0" value="0.5" step="0.1">
+                    </div>
                 </div>
-                <div class="system-card" data-system="pneumatic">
-                    <h3>Sistem Pneumatik</h3>
-                    <p>Menksplorasi sistem yang menggunakan udara bertekanan sebagai medium kerja, umum pada aktuasi dan otomasi industri.</p>
+
+                <div id="params-zeta-wn" class="control-group hidden">
+                    <div class="slider-container">
+                        <label for="k_ord2">Gain (<span class="symbol">K</span>): 
+                            <span class="value-display" id="k_ord2-val">1.0</span>
+                        </label>
+                        <input type="range" id="k_ord2" min="0.1" max="10.0" value="1.0" step="0.1">
+                    </div>
+                    <div class="slider-container">
+                        <label for="zeta">Rasio Redaman (<span class="symbol">&zeta;</span>): 
+                            <span class="value-display" id="zeta-val">0.2</span>
+                        </label>
+                        <input type="range" id="zeta" min="0.0" max="2.0" value="0.2" step="0.05">
+                    </div>
+                    <div class="slider-container">
+                        <label for="omega_n">Frekuensi Natural (<span class="symbol">&omega;<sub>n</sub></span>): 
+                            <span class="value-display" id="omega_n-val">5.0</span>
+                        </label>
+                        <input type="range" id="omega_n" min="0.1" max="20.0" value="5.0" step="0.1">
+                    </div>
                 </div>
-                <div class="system-card" data-system="electrical">
-                    <h3>Sistem Listrik</h3>
-                    <p>Menganalisis rangkaian RLC dan motor DC sebagai analogi dan implementasi penting dalam sistem elektromekanis.</p>
+            </details>
+
+            <details open>
+                <summary>3. Konfigurasi Kendali (Loop)</summary>
+                
+                <div class="control-group">
+                    <div>
+                        <input type="checkbox" id="pid-enable">
+                        <label for="pid-enable"><b>Aktifkan Kendali PID (C(s))</b></label>
+                    </div>
+                    <div class="slider-container hidden" id="pid-params">
+                        <label for="kp">Proporsional ($K_p$): 
+                            <span class="value-display" id="kp-val">1.0</span>
+                        </label>
+                        <input type="range" id="kp" min="0.0" max="20.0" value="1.0" step="0.1">
+                        
+                        <label for="ki">Integral ($K_i$): 
+                            <span class="value-display" id="ki-val">0.5</span>
+                        </label>
+                        <input type="range" id="ki" min="0.0" max="10.0" value="0.5" step="0.1">
+                        
+                        <label for="kd">Derivatif ($K_d$): 
+                            <span class="value-display" id="kd-val">0.1</span>
+                        </label>
+                        <input type="range" id="kd" min="0.0" max="10.0" value="0.1" step="0.1">
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div>
+                        <input type="checkbox" id="tacho-enable">
+                        <label for="tacho-enable"><b>Aktifkan Feedback Tachometer (H(s))</b></label>
+                    </div>
+                    <div class="slider-container hidden" id="tacho-params">
+                        <label for="kt">Tacho Gain ($K_t$): 
+                            <span class="value-display" id="kt-val">0.1</span>
+                        </label>
+                        <input type="range" id="kt" min="0.0" max="2.0" value="0.1" step="0.05">
+                    </div>
+                    <p id="tacho-desc" style="font-size: 0.9em; color: var(--color-text-dim);">
+                        (Feedback $H(s)=1$ (Unity))
+                    </p>
+                </div>
+
+            </details>
+        </div>
+        
+        <div class="simulation-panel">
+            
+            <div class="theory-box">
+                <h2>Teori Dasar Simulator</h2>
+                <p>
+                    Simulator ini memodelkan respon sistem kendali motor DC terhadap masukan <strong>Unit Step</strong> (Setpoint = 1.0).
+                </p>
+                <ul>
+                    <li><strong>Input (R(s)):</strong> Referensi/Setpoint yang diinginkan (nilai 1.0).</li>
+                    <li><strong>Kendali (C(s)):</strong> Kontroler PID: $C(s) = K_p + K_i/s + K_d s$.</li>
+                    <li><strong>Proses (G_p(s)):</strong> Plant motor DC (Orde 1 atau 2).</li>
+                    <li><strong>Feedback (H(s)):</strong> Sensor. Bisa $H(s)=1$ (Unity, misal Encoder posisi) atau $H(s)=K_t$ / $H(s)=K_t s$ (Tachometer kecepatan).</li>
+                    <li><strong>Output (Y(s)):</strong> Respon aktual (posisi/kecepatan).</li>
+                </ul>
+            </div>
+
+            <h2>Respon Sistem (Step Input)</h2>
+            <div id="plot-container"></div>
+
+            <div class="tf-display-box">
+                <h3>Fungsi Alih Sistem (Closed Loop)</h3>
+                <div id="cl-tf-display" style="font-size: 1.2em;">
+                    $$ G_{CL}(s) = \frac{C(s)G_p(s)}{1 + C(s)G_p(s)H(s)} = \text{...} $$
+                </div>
+                
+                <div class="analysis-box">
+                    <h3>Analisis Kuantitatif Sistem</h3>
+                    <div id="cl-analysis-text"></div>
+                    <div id="cl-poles-analysis"></div>
                 </div>
             </div>
-        </section>
 
-        <section id="sub-selection-container" style="display: none;">
-             <div id="sub-selection"></div>
-        </section>
-
-        <main id="simulation-content">
-             <div id="initial-message">
-                <h2>Selamat Datang!</h2>
-                <p>Pilih salah satu jenis sistem di atas untuk memulai simulasi.</p>
-            </div>
-        </main>
+            <!-- [BARU] Panel Interpretasi -->
+            <details open class="interpretation-box">
+                <summary style="color: var(--color-warning);">Analisis Lanjutan & Interpretasi</summary>
+                <div id="interpretation-content">
+                    <h3>Interpretasi Respon Transien</h3>
+                    <div id="transient-interpretation"></div>
+                    <br>
+                    <h3>Interpretasi Stabilitas & Karakteristik Sistem</h3>
+                    <div id="stability-interpretation"></div>
+                </div>
+            </details>
+        </div>
     </div>
 
-<script>
-    const blockDiagrams = {
-        order1_pid: `
-            <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
-                <defs><marker id="arrowhead" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c9d1d9"/></marker></defs>
-                <style>.txt{font-family: Inter, sans-serif; fill: #c9d1d9; font-size: 14px;} .block{fill:#161b22; stroke:#58a6ff; stroke-width:1.5;} .line{stroke:#c9d1d9; stroke-width:1.5; marker-end:url(#arrowhead);}</style>
-                <line class="line" x1="20" y1="100" x2="60" y2="100"/><text class="txt" x="25" y="95">R(s)</text>
-                <circle class="block" cx="80" cy="100" r="15"/><line x1="80" y1="85" x2="80" y2="115" stroke="#c9d1d9"/><line x1="65" y1="100" x2="95" y2="100" stroke="#c9d1d9"/>
-                <text class="txt" x="98" y="85">+</text><text class="txt" x="98" y="130">-</text>
-                <line class="line" x1="95" y1="100" x2="140" y2="100"/><text class="txt" x="110" y="95">E(s)</text>
-                <rect class="block" x="140" y="80" width="80" height="40"/><text class="txt" text-anchor="middle" x="180" y="105">PID</text>
-                <line class="line" x1="220" y1="100" x2="270" y2="100"/><text class="txt" x="235" y="95">U(s)</text>
-                <rect class="block" x="270" y="80" width="120" height="40"/><foreignObject x="275" y="85" width="110" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="color: #c9d1d9; font-size: 13px; text-align: center;">$\\frac{K}{\\tau s + 1}$</div></foreignObject>
-                <line class="line" x1="390" y1="100" x2="450" y2="100"/><text class="txt" x="455" y="105">Y(s)</text>
-                <line class="line" x1="420" y1="100" x2="420" y2="140"/><line class="line" x1="420" y1="140" x2="80" y2="140"/><line x1="80" y1="140" x2="80" y2="115" class="line"/>
-            </svg>`,
-        order2_pid: `
-            <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
-                <defs><marker id="arrowhead2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c9d1d9"/></marker></defs>
-                <style>.txt{font-family: Inter, sans-serif; fill: #c9d1d9; font-size: 14px;} .block{fill:#161b22; stroke:#58a6ff; stroke-width:1.5;} .line{stroke:#c9d1d9; stroke-width:1.5; marker-end:url(#arrowhead2);}</style>
-                <line class="line" x1="20" y1="100" x2="60" y2="100"/><text class="txt" x="25" y="95">R(s)</text>
-                <circle class="block" cx="80" cy="100" r="15"/><line x1="80" y1="85" x2="80" y2="115" stroke="#c9d1d9"/><line x1="65" y1="100" x2="95" y2="100" stroke="#c9d1d9"/>
-                <text class="txt" x="98" y="85">+</text><text class="txt" x="98" y="130">-</text>
-                <line class="line" x1="95" y1="100" x2="140" y2="100"/><text class="txt" x="110" y="95">E(s)</text>
-                <rect class="block" x="140" y="80" width="80" height="40"/><text class="txt" text-anchor="middle" x="180" y="105">PID</text>
-                <line class="line" x1="220" y1="100" x2="270" y2="100"/><text class="txt" x="235" y="95">U(s)</text>
-                <rect class="block" x="270" y="80" width="120" height="40"/><foreignObject x="275" y="85" width="110" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="color: #c9d1d9; font-size: 13px; text-align: center;">$\\frac{\\omega_n^2}{s^2+2\\zeta\\omega_n s+\\omega_n^2}$</div></foreignObject>
-                <line class="line" x1="390" y1="100" x2="450" y2="100"/><text class="txt" x="455" y="105">Y(s)</text>
-                <line class="line" x1="420" y1="100" x2="420" y2="140"/><line class="line" x1="420" y1="140" x2="80" y2="140"/><line x1="80" y1="140" x2="80" y2="115" class="line"/>
-            </svg>`,
-        order2_integrator_pid: `
-            <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg">
-                <defs><marker id="arrowhead3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#c9d1d9"/></marker></defs>
-                <style>.txt{font-family: Inter, sans-serif; fill: #c9d1d9; font-size: 14px;} .block{fill:#161b22; stroke:#58a6ff; stroke-width:1.5;} .line{stroke:#c9d1d9; stroke-width:1.5; marker-end:url(#arrowhead3);}</style>
-                <line class="line" x1="20" y1="100" x2="60" y2="100"/><text class="txt" x="25" y="95">R(s)</text>
-                <circle class="block" cx="80" cy="100" r="15"/><line x1="80" y1="85" x2="80" y2="115" stroke="#c9d1d9"/><line x1="65" y1="100" x2="95" y2="100" stroke="#c9d1d9"/>
-                <text class="txt" x="98" y="85">+</text><text class="txt" x="98" y="130">-</text>
-                <line class="line" x1="95" y1="100" x2="140" y2="100"/><text class="txt" x="110" y="95">E(s)</text>
-                <rect class="block" x="140" y="80" width="80" height="40"/><text class="txt" text-anchor="middle" x="180" y="105">PID</text>
-                <line class="line" x1="220" y1="100" x2="270" y2="100"/><text class="txt" x="235" y="95">U(s)</text>
-                <rect class="block" x="270" y="80" width="120" height="40"/><foreignObject x="275" y="85" width="110" height="30"><div xmlns="http://www.w3.org/1999/xhtml" style="color: #c9d1d9; font-size: 13px; text-align: center;">$\\frac{K}{s(Js+b)}$</div></foreignObject>
-                <line class="line" x1="390" y1="100" x2="450" y2="100"/><text class="txt" x="455" y="105">Y(s)</text>
-                <line class="line" x1="420" y1="100" x2="420" y2="140"/><line class="line" x1="420" y1="140" x2="80" y2="140"/><line x1="80" y1="140" x2="80" y2="115" class="line"/>
-            </svg>`
-    };
-    
-    const systemsData = {
-        mechanical: {
-            title: "Sistem Mekanik",
-            examples: {
-                "mass-damper": {
-                    title: "Sistem Massa-Peredam (Orde 1)",
-                    order: 1,
-                    params: { m: 2, b: 4 },
-                    transientDef: { type: 'tau', name: 'Konstanta Waktu (τ)', min: 0.1, max: 5, step: 0.1 },
-                    animation: `<svg viewBox="0 0 400 150" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="20" width="10" height="110" fill="#8b949e"/><rect x="150" y="50" width="80" height="50" fill="#58a6ff" rx="5"/><text x="180" y="80" fill="white" font-size="16" font-family="Inter">m</text><line x1="10" y1="75" x2="60" y2="75" stroke="#c9d1d9" stroke-width="2"/><rect x="60" y="60" width="20" height="30" fill="none" stroke="#c9d1d9" stroke-width="2"/><line x1="80" y1="75" x2="150" y2="75" stroke="#c9d1d9" stroke-width="2"/><line x1="70" y1="60" x2="70" y2="90" stroke="#c9d1d9" stroke-width="2"/><text x="85" y="70" fill="#c9d1d9" font-size="14">b</text><line x1="230" y1="75" x2="280" y2="75" stroke="#f85149" stroke-width="2" marker-end="url(#arrow)"/><text x="285" y="80" fill="#f85149" font-size="16">F(t)</text><line x1="150" y1="105" x2="200" y2="105" stroke="#3fb950" stroke-width="2" marker-end="url(#arrow)"/><text x="205" y="110" fill="#3fb950" font-size="16">x(t)</text><defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149"/></marker></defs></svg>`,
-                    physicalModel: `Sistem ini terdiri dari sebuah massa (m) yang bergerak di atas permukaan dengan gesekan viskos (peredam, b). Gaya eksternal F(t) diterapkan pada massa, menyebabkan pergerakan sejauh x(t). Ini adalah model dasar untuk sistem di mana efek inersia dan disipasi energi dominan.`,
-                    mathModel: `Dengan Hukum Newton II ($\\Sigma F = ma$):
-                        $$F(t) - F_{gesek} = m \\frac{d^2x}{dt^2}$$
-                        Gaya gesek viskos proporsional terhadap kecepatan: $F_{gesek} = b \\frac{dx}{dt}$. Karena ini sistem orde 1, kita asumsikan output yang diamati adalah kecepatan $v(t) = \\frac{dx}{dt}$.
-                        $$F(t) - bv(t) = m \\frac{dv}{dt}$$
-                        $$m \\frac{dv(t)}{dt} + bv(t) = F(t)$$
-                        <br>
-                        <b>Transformasi Laplace:</b>
-                        $$m sV(s) + bV(s) = F(s)$$
-                        $$(ms + b)V(s) = F(s)$$`,
-                    transientAnalysis: `Sistem orde pertama memiliki satu parameter kunci: <b>konstanta waktu $\\tau = m/b$</b>. Nilai $\\tau$ merepresentasikan waktu yang dibutuhkan sistem untuk mencapai 63.2% dari nilai akhirnya sebagai respon terhadap input step. Waktu settling (sekitar 98% dari nilai akhir) adalah $4\\tau$. Semakin besar $\\tau$, semakin lambat respon sistem.`,
-                    transferFunction: `Fungsi alih dari gaya input F(s) ke kecepatan output V(s) adalah:
-                        $$G(s) = \\frac{V(s)}{F(s)} = \\frac{1}{ms+b} = \\frac{K}{\\tau s+1}$$
-                        Dimana $K = 1/b$ (gain) dan $\\tau = m/b$ (konstanta waktu).`,
-                    blockDiagramKey: 'order1_pid',
-                    theory: `Sistem orde satu dicirikan oleh satu komponen penyimpan energi (energi kinetik massa). Responnya terhadap input step tidak pernah berosilasi. Pengontrol PID, terutama Proportional (P) dan Integral (I), digunakan untuk mempercepat respon dan menghilangkan steady-state error. Kontroler Derivative (D) jarang digunakan pada sistem orde satu murni karena dapat memperkuat noise.`
-                },
-                "mass-spring-damper": {
-                    title: "Sistem Massa-Pegas-Peredam (Orde 2)",
-                    order: 2,
-                    params: { m: 1, b: 2, k: 10 },
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 0.1, max: 2, step: 0.05 },
-                    animation: `<svg viewBox="0 0 400 150" xmlns="http://www.w3.org/2000/svg"><rect x="0" y="20" width="10" height="110" fill="#8b949e"/><rect x="150" y="50" width="80" height="50" fill="#58a6ff" rx="5"/><text x="180" y="80" fill="white" font-size="16">m</text><line x1="10" y1="55" x2="60" y2="55" stroke="#c9d1d9" stroke-width="2"/><rect x="60" y="40" width="20" height="30" fill="none" stroke="#c9d1d9" stroke-width="2"/><line x1="80" y1="55" x2="150" y2="55" stroke="#c9d1d9" stroke-width="2"/><line x1="70" y1="40" x2="70" y2="70" stroke="#c9d1d9" stroke-width="2"/><text x="85" y="50" fill="#c9d1d9" font-size="14">b</text><path d="M10 95 L25 95 L30 85 L40 105 L50 85 L60 105 L70 85 L75 95 L150 95" stroke="#c9d1d9" stroke-width="2" fill="none"/><text x="85" y="110" fill="#c9d1d9" font-size="14">k</text><line x1="230" y1="75" x2="280" y2="75" stroke="#f85149" stroke-width="2" marker-end="url(#arrow2)"/><text x="285" y="80" fill="#f85149" font-size="16">F(t)</text><line x1="150" y1="105" x2="200" y2="105" stroke="#3fb950" stroke-width="2" marker-end="url(#arrow3)"/><text x="205" y="110" fill="#3fb950" font-size="16">x(t)</text><defs><marker id="arrow2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149"/></marker><marker id="arrow3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/></marker></defs></svg>`,
-                    physicalModel: `Ini adalah sistem mekanik translasi prototipikal. Terdiri dari massa (m), pegas dengan konstanta kekakuan (k), dan peredam dengan koefisien redaman (b). Gaya F(t) menyebabkan massa berosilasi atau bergerak ke posisi baru x(t).`,
-                    mathModel: `Hukum Newton II ($\\Sigma F = m a$):
-                        $$F(t) - kx(t) - b \\frac{dx}{dt} = m \\frac{d^2x}{dt^2}$$
-                        $$m \\frac{d^2x}{dt^2} + b \\frac{dx}{dt} + kx(t) = F(t)$$
-                        <br>
-                        <b>Transformasi Laplace:</b>
-                        $$(ms^2 + bs + k)X(s) = F(s)$$`,
-                    transientAnalysis: `Karakteristik sistem orde dua ditentukan oleh frekuensi natural $\\omega_n = \\sqrt{k/m}$ dan <b>rasio redaman $\\zeta = b / (2\\sqrt{mk})$</b>.
-                        <ul>
-                            <li>$\\zeta < 1$: <b>Underdamped</b> (terjadi osilasi dan overshoot)</li>
-                            <li>$\\zeta = 1$: <b>Critically damped</b> (respon tercepat tanpa overshoot)</li>
-                            <li>$\\zeta > 1$: <b>Overdamped</b> (respon lambat, tidak ada osilasi)</li>
-                        </ul>
-                        Ubah nilai $\\zeta$ di bawah untuk melihat pengaruhnya pada respon sistem.`,
-                    transferFunction: `Fungsi alih dari gaya input F(s) ke posisi output X(s) adalah:
-                        $$G(s) = \\frac{X(s)}{F(s)} = \\frac{1}{ms^2+bs+k}$$
-                        Bentuk standarnya adalah:
-                        $$G(s) = \\frac{\\omega_n^2/k}{s^2 + 2\\zeta\\omega_n s + \\omega_n^2}$$`,
-                    blockDiagramKey: 'order2_pid',
-                    theory: `Sistem orde dua mampu menyimpan energi dalam dua bentuk (kinetik pada massa dan potensial pada pegas), yang memungkinkannya berosilasi. Kendali PID sangat efektif di sini. Aksi Proportional (Kp) meningkatkan kecepatan respon tetapi juga overshoot. Aksi Derivative (Kd) mengurangi overshoot dengan 'mengantisipasi' laju perubahan error. Aksi Integral (Ki) menghilangkan steady-state error yang mungkin timbul.`
-                },
-                "dc-motor": {
-                    title: "Motor DC (Kontrol Posisi)",
-                    order: 2,
-                    params: { J: 0.01, b: 0.1, K: 0.01, R: 1 },
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 0.1, max: 2, step: 0.05 },
-                    animation: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><circle cx="150" cy="100" r="60" fill="none" stroke="#8b949e" stroke-width="4"/><circle cx="150" cy="100" r="10" fill="#c9d1d9"/><line id="motor-shaft" x1="150" y1="100" x2="240" y2="100" stroke="#58a6ff" stroke-width="6"/><text x="140" y="80" font-size="12" fill="#c9d1d9">Rotor (J,b)</text><text x="30" y="40" font-size="14" fill="#f85149">Input: Va(t)</text><text x="30" y="60" font-size="14" fill="#3fb950">Output: θ(t)</text><path d="M220 90 L240 100 L220 110" fill="none" stroke="#3fb950" stroke-width="2"/></svg>`,
-                    physicalModel: `Sebuah motor DC dengan medan magnet konstan. Tegangan input $V_a(t)$ diberikan ke rangkaian armature (resistansi R, induktansi L diabaikan). Ini membangkitkan torsi $T(t)$ pada rotor (inersia J, redaman b), menghasilkan output posisi sudut $\\theta(t)$.`,
-                    mathModel: `<b>Persamaan Elektrik (KVL, L diabaikan):</b>
-                        $$V_a(t) = R i_a(t) + K \\frac{d\\theta(t)}{dt}$$
-                        <b>Persamaan Mekanik (Torsi):</b>
-                        $$T(t) = K i_a(t) = J \\frac{d^2\\theta(t)}{dt^2} + b \\frac{d\\theta(t)}{dt}$$
-                        <br><b>Transformasi Laplace:</b>
-                        $$I_a(s) = \\frac{V_a(s) - Ks\\Theta(s)}{R}$$
-                        $$(Js^2+bs)\\Theta(s) = K I_a(s)$$`,
-                    transientAnalysis: `Meskipun sistem motor DC memiliki integrator, dinamika loop tertutupnya (dengan kontroler proporsional sederhana) akan berperilaku seperti sistem orde dua. Oleh karena itu, rasio redaman $\\zeta$ tetap menjadi parameter kunci untuk menganalisis apakah responnya akan berosilasi (underdamped) atau tidak (critically/overdamped).`,
-                    transferFunction: `Jika induktansi $L$ diabaikan, fungsi alih dari tegangan input Va(s) ke posisi sudut output $\\Theta(s)$ adalah:
-                        $$G(s) = \\frac{\\Theta(s)}{V_a(s)} = \\frac{K}{s(R(Js+b)+K^2)} = \\frac{K/R}{s(Js + b + K^2/R)}$$
-                        Sistem ini memiliki integrator (pole di $s=0$).`,
-                    blockDiagramKey: 'order2_integrator_pid',
-                    theory: `Motor DC adalah contoh sistem elektromekanis yang sangat umum. Pengendalian posisi (seperti pada lengan robot atau CNC) adalah aplikasi utama. Sistem ini secara inheren memiliki integrator (karena $s$ di penyebut) yang membantu menghilangkan steady-state error, tetapi juga membuat sistem rentan terhadap ketidakstabilan. Kontrol PID, khususnya dengan komponen Derivative (D), sangat penting untuk menstabilkan dan meningkatkan performa.`
-                },
-                 "inv-pendulum": {
-                    title: "Inverted Pendulum (Linearized)",
-                    order: 2,
-                    params: { M: 0.5, m: 0.2, b: 0.1, I: 0.006, g: 9.8, l: 0.3 },
-                    transientDef: { type: 'none' },
-                    animation: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><rect x="80" y="150" width="140" height="30" fill="#58a6ff" rx="5"/><text x="145" y="170" fill="white">M</text><circle cx="150" cy="150" r="5" fill="#c9d1d9"/><line id="pendulum-rod" x1="150" y1="150" x2="150" y2="60" stroke="#c9d1d9" stroke-width="4"/><circle cx="150" cy="60" r="10" fill="#3fb950"/><text x="160" y="65" fill="white">m</text><line x1="0" y1="180" x2="300" y2="180" stroke="#8b949e" stroke-width="2"/><line x1="220" y1="165" x2="260" y2="165" stroke="#f85149" stroke-width="2" marker-end="url(#arrow4)"/><text x="265" y="170" fill="#f85149">F(t)</text><defs><marker id="arrow4" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149"/></marker></defs></svg>`,
-                    physicalModel: `Sistem ini terdiri dari sebuah gerobak (massa M) dan sebuah pendulum (massa m, panjang l) yang dipasang di atasnya. Tujuannya adalah menerapkan gaya F(t) pada gerobak untuk menjaga pendulum tetap tegak (sudut $\\phi \\approx 0$). Ini adalah sistem yang secara inheren tidak stabil.`,
-                    mathModel: `Persamaan gerak non-linear untuk sistem ini sangat kompleks. Untuk tujuan kendali, kita melakukan linearisasi di sekitar titik setimbang ($\\phi=0, \\dot{\\phi}=0$).
-                        <br><b>Persamaan Linearized:</b>
-                        $$(I+ml^2)\\ddot{\\phi} - mgl\\phi = ml\\ddot{x}$$
-                        $$(M+m)\\ddot{x} + b\\dot{x} - ml\\ddot{\\phi} = F(t)$$`,
-                     transientAnalysis: `Sistem pendulum terbalik secara inheren <b>tidak stabil</b>. Analisis transien standar tidak berlaku karena sistem tidak akan pernah mencapai kondisi mapan (steady-state) tanpa kendali aktif. Jika diberi gangguan kecil, output (sudut) akan tumbuh secara eksponensial (pendulum jatuh). Oleh karena itu, simulasi difokuskan pada sistem loop tertutup dengan kontroler PID.`,
-                    transferFunction: `Fungsi alih yang disederhanakan dari gaya input F(s) ke sudut pendulum $\\Phi(s)$ memiliki bentuk:
-                        $$G(s) \\approx \\frac{K}{s^2 - a^2}$$
-                        Adanya pole di bidang-s kanan ($s=+a$) menunjukkan ketidakstabilan sistem.`,
-                    blockDiagramKey: 'order2_pid',
-                    theory: `Inverted Pendulum adalah masalah benchmark klasik dalam teori kendali karena sifatnya yang tidak stabil. Sistem 'open-loop' akan selalu gagal. Diperlukan sistem kendali 'closed-loop' (umpan balik) yang aktif. Kontroler PID, atau yang lebih canggih seperti LQR, harus dirancang dengan cermat untuk menstabilkan sistem. Aksi D sangat krusial di sini untuk memberikan redaman dan mencegah osilasi yang cepat.`
-                }
-            }
-        },
-        fluid: {
-            title: "Sistem Fluida",
-            examples: {
-                 "single-tank": {
-                    title: "Sistem Tangki Tunggal (Orde 1)",
-                    order: 1,
-                    params: { A: 4, R: 2 },
-                    transientDef: { type: 'tau', name: 'Konstanta Waktu (τ)', min: 1, max: 15, step: 0.5 },
-                    animation: `<svg viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg"><path d="M50 200 L50 50 L250 50 L250 200" stroke="#8b949e" stroke-width="2" fill="none"/><rect x="50" y="120" width="200" height="80" fill="#58a6ff" fill-opacity="0.5"/><text x="140" y="110" fill="#c9d1d9">h(t)</text><line x1="150" y1="120" x2="150" y2="100" stroke="#c9d1d9" stroke-width="1" stroke-dasharray="2"/><line x1="150" y1="100" x2="250" y2="100" stroke="#c9d1d9" stroke-width="1" stroke-dasharray="2"/><text x="255" y="100" fill="#c9d1d9">A</text><line x1="150" y1="10" x2="150" y2="50" stroke="#3fb950" stroke-width="2" marker-end="url(#arrowF1)"/><text x="155" y="30" fill="#3fb950">Qin(t)</text><line x1="150" y1="200" x2="150" y2="240" stroke="#f85149" stroke-width="2" marker-end="url(#arrowF2)"/><text x="155" y="225" fill="#f85149">Qout(t)</text><defs><marker id="arrowF1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/></marker><marker id="arrowF2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149"/></marker></defs></svg>`,
-                    physicalModel: `Sebuah tangki dengan luas penampang konstan A. Fluida masuk dengan laju alir volumetrik $Q_{in}(t)$ dan keluar melalui katup (resistansi hidrolik R). Ketinggian fluida dalam tangki adalah h(t).`,
-                    mathModel: `<b>Prinsip Konservasi Massa:</b>
-                        $$A \\frac{dh(t)}{dt} = Q_{in}(t) - Q_{out}(t)$$
-                        Untuk aliran laminar, $Q_{out}(t) = \\frac{h(t)}{R}$. Maka:
-                        $$AR \\frac{dh(t)}{dt} + h(t) = R Q_{in}(t)$$
-                        <br><b>Transformasi Laplace:</b>
-                        $$(ARs + 1)H(s) = R Q_{in}(s)$$`,
-                    transientAnalysis: `Konstanta waktu sistem ini adalah $\\tau = AR$. Ia merepresentasikan seberapa cepat tangki terisi atau terkuras. $\\tau$ yang besar (tangki luas atau katup outlet sempit) berarti sistem bereaksi lambat terhadap perubahan aliran masuk.`,
-                    transferFunction: `Fungsi alih dari laju alir masuk $Q_{in}(s)$ ke ketinggian fluida $H(s)$ adalah:
-                        $$G(s) = \\frac{H(s)}{Q_{in}(s)} = \\frac{R}{ARs+1}$$
-                        Ini adalah bentuk standar sistem orde satu dengan gain $K=R$ dan konstanta waktu $\\tau = AR$.`,
-                    blockDiagramKey: 'order1_pid',
-                    theory: `Sistem tangki tunggal adalah analogi hidrolik dari rangkaian RC listrik. Kapasitansi hidrolik sebanding dengan luas penampang tangki (A), dan resistansi hidrolik disediakan oleh katup (R). Sistem ini tidak berosilasi. Pengendalian level cairan adalah aplikasi umum, biasanya menggunakan kontroler PI untuk mencapai setpoint tanpa error.`
-                },
-                "two-tanks-interacting": {
-                    title: "Dua Tangki Berinteraksi (Orde 2)",
-                    order: 2,
-                    params: { A1: 2, A2: 2, R1: 1, R2: 1 },
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 1.1, max: 4, step: 0.1 },
-                    animation: `<svg viewBox="0 0 450 250" xmlns="http://www.w3.org/2000/svg"><path d="M50 200 L50 50 L200 50 L200 200" stroke="#8b949e" stroke-width="2" fill="none"/><rect x="50" y="130" width="150" height="70" fill="#58a6ff" fill-opacity="0.5"/><text x="115" y="120" fill="#c9d1d9">h1(t)</text><line x1="125" y1="10" x2="125" y2="50" stroke="#3fb950" stroke-width="2" marker-end="url(#arrowF3)"/><text x="130" y="30" fill="#3fb950">Qin</text><path d="M250 200 L250 50 L400 50 L400 200" stroke="#8b949e" stroke-width="2" fill="none"/><rect x="250" y="150" width="150" height="50" fill="#58a6ff" fill-opacity="0.5"/><text x="315" y="140" fill="#c9d1d9">h2(t)</text><line x1="200" y1="180" x2="250" y2="180" stroke="#8b949e" stroke-width="4"/><line x1="325" y1="200" x2="325" y2="240" stroke="#f85149" stroke-width="2" marker-end="url(#arrowF4)"/><text x="330" y="225" fill="#f85149">Qout</text><defs><marker id="arrowF3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/></marker><marker id="arrowF4" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149"/></marker></defs></svg>`,
-                    physicalModel: `Dua tangki (A1, A2) dihubungkan secara seri. Fluida masuk ke tangki pertama, lalu mengalir ke tangki kedua melalui katup (R1), dan akhirnya keluar dari tangki kedua (R2). Karena aliran dari tangki 1 ke 2 bergantung pada (h1-h2), sistem ini 'berinteraksi'.`,
-                    mathModel: `<b>Neraca Massa Tangki 1:</b> $A_1 \\frac{dh_1}{dt} = Q_{in} - \\frac{h_1 - h_2}{R_1}$
-                        <br><b>Neraca Massa Tangki 2:</b> $A_2 \\frac{dh_2}{dt} = \\frac{h_1 - h_2}{R_1} - \\frac{h_2}{R_2}$`,
-                    transientAnalysis: `Sistem dua tangki berinteraksi secara matematis selalu menghasilkan respon <b>overdamped</b> ($\\zeta > 1$). Ini berarti sistem tidak akan pernah berosilasi secara alami. Responnya lambat dan sluggish. Interaksi antar tangki memberikan efek redaman yang kuat pada sistem.`,
-                    transferFunction: `$$\\frac{H_2(s)}{Q_{in}(s)} = \\frac{R_2}{A_1R_1A_2R_2s^2 + (A_1R_1+A_2R_2+A_1R_2)s + 1}$$`,
-                    blockDiagramKey: 'order2_pid',
-                    theory: `Sistem dua tangki berinteraksi menunjukkan bagaimana kopling antar subsistem mempengaruhi dinamika keseluruhan. Responnya lebih lambat dibandingkan dua tangki non-interaksi. Ini karena level di tangki kedua 'melawan' aliran dari tangki pertama. Kontrol PID digunakan untuk mengatur level di tangki kedua dengan memanipulasi laju alir masuk.`
-                },
-                 "u-tube-manometer": {
-                    title: "Manometer Pipa-U (Orde 2)",
-                    order: 2,
-                    params: { rho: 1000, A: 0.01, L: 1, g: 9.8, Rf: 10 },
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 0.1, max: 2, step: 0.05 },
-                    animation: `<svg viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg"><path d="M75 200 L75 100 C75 50 225 50 225 100 L225 200" stroke="#8b949e" stroke-width="4" fill="none"/><path id="liquid" d="M75 180 L75 100 C75 60 225 60 225 100 L225 140" stroke="#58a6ff" stroke-width="20" fill="none"/><text x="15" y="50" fill="#f85149">P1(t)</text><line x1="50" y1="60" x2="75" y2="80" stroke="#f85149" stroke-width="2" marker-end="url(#arrowP)"/><line x1="150" y1="120" x2="150" y2="160" stroke="#c9d1d9" stroke-width="1" stroke-dasharray="2"/><text x="155" y="145" fill="#c9d1d9">h(t)</text><defs><marker id="arrowP" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149"/></marker></defs></svg>`,
-                    physicalModel: `Sebuah pipa U diisi dengan fluida (massa jenis $\\rho$) dengan total panjang L dan luas A. Perbedaan tekanan $P(t)$ menyebabkan perpindahan level fluida sebesar h(t). Gesekan viskos memberikan redaman.`,
-                    mathModel: `<b>Hukum Newton II untuk Kolom Fluida:</b>
-                        $$(\\rho A L) \\frac{d^2h}{dt^2} + R_f \\frac{dh}{dt} + (2\\rho g A) h = P(t)A$$
-                        Dimana $R_f$ adalah koefisien redaman akibat viskositas.`,
-                    transientAnalysis: `Sistem ini adalah analogi fluida yang sempurna untuk sistem massa-pegas-peredam. Responnya bisa <b>underdamped</b> (jika viskositas rendah), <b>critically damped</b>, atau <b>overdamped</b> (jika viskositas tinggi). Frekuensi osilasi utamanya ditentukan oleh panjang kolom fluida (L) dan gravitasi (g).`,
-                    transferFunction: `$$\\frac{H(s)}{P(s)} = \\frac{A}{\\rho A L s^2 + R_f s + 2\\rho g A}$$`,
-                    blockDiagramKey: 'order2_pid',
-                    theory: `Manometer adalah contoh sistem fluida yang menunjukkan perilaku osilasi (underdamped), mirip dengan sistem mekanik. Frekuensi osilasi bergantung pada gravitasi dan panjang kolom fluida, sementara redaman ditentukan oleh viskositas fluida dan geometri pipa.`
-                },
-                 "hydraulic-actuator": {
-                    title: "Aktuator Hidrolik (Orde 2)",
-                    order: 2,
-                    params: { A: 0.01, M: 50, B: 200 },
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 0.1, max: 2, step: 0.05 },
-                     animation: `<svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg"><rect x="50" y="70" width="300" height="60" stroke="#8b949e" stroke-width="2" fill="none"/><rect x="150" y="70" width="20" height="60" fill="#58a6ff"/><line x1="170" y1="100" x2="380" y2="100" stroke="#c9d1d9" stroke-width="4"/><text x="340" y="90" fill="#c9d1d9">Beban (M,B)</text><line x1="100" y1="40" x2="100" y2="70" stroke="#f85149" stroke-width="2"/><text x="80" y="35" fill="#f85149">Qin(t)</text><line x1="380" y1="110" x2="340" y2="110" stroke="#3fb950" stroke-width="2" marker-end="url(#arrowX)"/><text x="345" y="125" fill="#3fb950">x(t)</text><defs><marker id="arrowX" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/></marker></defs></svg>`,
-                    physicalModel: `Sebuah piston (luas A) mendorong beban (massa M, redaman B). Aliran fluida hidrolik $Q_{in}(t)$ dimasukkan, menciptakan tekanan yang mendorong piston. Kompresibilitas fluida diabaikan untuk model ini.`,
-                    mathModel: `<b>Dinamika Aliran & Piston (disederhanakan):</b>
-                        $$Q_{in}(t) = A \\frac{dx}{dt}$$
-                        $$P(t) A = M \\frac{d^2x}{dt^2} + B \\frac{dx}{dt}$$
-                        Ini adalah model yang sangat disederhanakan. Dalam prakteknya, dinamika katup dan kompresibilitas membuat sistem lebih kompleks.`,
-                    transientAnalysis: `Sistem hidrolik umumnya memiliki redaman yang sangat tinggi karena viskositas fluida kerjanya. Oleh karena itu, responnya seringkali <b>overdamped</b>, meskipun dapat dibuat underdamped dengan beban massa yang sangat besar dan redaman yang rendah.`,
-                    transferFunction: `Jika kompresibilitas diabaikan, model yang paling sederhana adalah:
-                        $$G(s) = \\frac{X(s)}{Q_{in}(s)} = \\frac{1}{s(Ms+B)}$$
-                        Model ini memiliki integrator, mirip dengan motor DC.`,
-                    blockDiagramKey: 'order2_integrator_pid',
-                    theory: `Aktuator hidrolik mampu menghasilkan gaya yang sangat besar. Sifat kompresibilitas fluida memperkenalkan dinamika yang kompleks, tetapi model orde 2 yang disederhanakan seringkali cukup untuk analisis awal. Adanya integrator (1/s) berarti sistem ini baik untuk aplikasi kontrol posisi.`
-                }
-            }
-        },
-        pneumatic: {
-            title: "Sistem Pneumatik",
-             examples: {
-                 "tank-filling": {
-                    title: "Pengisian Tangki Pneumatik (Orde 1)",
-                    order: 1,
-                    params: { R: 1.5, C: 0.5 },
-                    transientDef: { type: 'tau', name: 'Konstanta Waktu (τ)', min: 0.1, max: 5, step: 0.1 },
-                    animation: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><ellipse cx="150" cy="100" rx="100" ry="60" stroke="#8b949e" stroke-width="2" fill="#58a6ff" fill-opacity="0.3"/><line x1="50" y1="100" x2="10" y2="100" stroke="#8b949e" stroke-width="4"/><text x="130" y="110" fill="#c9d1d9">P(t), C</text><line x1="10" y1="100" x2="-20" y2="100" stroke="#3fb950" stroke-width="2" marker-end="url(#arrowPn1)"/><text x="-45" y="95" fill="#3fb950">$\\dot{m}_{in}$</text><text x="-40" y="115" fill="#c9d1d9">R</text><defs><marker id="arrowPn1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/></marker></defs></svg>`,
-                    physicalModel: `Sebuah tangki dengan kapasitansi pneumatik C diisi dengan udara melalui sebuah katup (resistansi R). Laju aliran massa udara masuk, menyebabkan tekanan di dalam tangki $P(t)$ meningkat.`,
-                    mathModel: `<b>Konservasi Massa & Gas Ideal:</b>
-                        $$RC \\frac{dP(t)}{dt} + P(t) = P_{sumber}(t)$$`,
-                    transientAnalysis: `Sistem ini adalah sistem orde satu murni. Konstanta waktunya, $\\tau=RC$, ditentukan oleh volume tangki (kapasitansi C) dan karakteristik katup (resistansi R). Semakin besar volume atau resistansi katup, semakin lambat tekanan akan naik.`,
-                    transferFunction: `Fungsi alih dari tekanan sumber $P_{sumber}(s)$ ke tekanan tangki $P(s)$ adalah:
-                        $$G(s) = \\frac{P(s)}{P_{sumber}(s)} = \\frac{1}{RCs+1}$$`,
-                    blockDiagramKey: 'order1_pid',
-                    theory: `Proses pengisian tangki pneumatik adalah dasar untuk memahami dinamika penyimpanan energi dalam bentuk udara bertekanan. Konstanta waktu sistem, $\\tau=RC$, ditentukan oleh volume tangki dan karakteristik katup. Sistem ini adalah fondasi untuk sistem pneumatik yang lebih kompleks.`
-                },
-                 "pneumatic-actuator": {
-                    title: "Aktuator Pneumatik (Orde 2)",
-                    order: 2,
-                    params: { M: 5, A: 0.005, k: 100, b: 20 },
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 0.1, max: 2, step: 0.05 },
-                     animation: `<svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg"><rect x="50" y="70" width="300" height="60" stroke="#8b949e" stroke-width="2" fill="none"/><rect x="150" y="70" width="20" height="60" fill="#58a6ff"/><line x1="170" y1="100" x2="380" y2="100" stroke="#c9d1d9" stroke-width="4"/><rect x="375" y="80" width="10" height="40" fill="#8b949e"/><text x="320" y="70" fill="#c9d1d9">Beban (M,b)</text><path d="M350 100 L355 90 L365 110 L375 90 L380 100" stroke="#c9d1d9" stroke-width="2" fill="none"/><line x1="100" y1="40" x2="100" y2="70" stroke="#f85149" stroke-width="2"/><text x="80" y="35" fill="#f85149">Ps(t)</text><line x1="380" y1="120" x2="340" y2="120" stroke="#3fb950" stroke-width="2" marker-end="url(#arrowX2)"/><text x="345" y="135" fill="#3fb950">x(t)</text><defs><marker id="arrowX2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/></marker></defs></svg>`,
-                    physicalModel: `Sebuah aktuator silinder-piston (luas A) mendorong beban (massa M, redaman b) dan melawan pegas (konstanta k). Udara dari sumber bertekanan Ps(t) masuk ke silinder, menciptakan tekanan P.`,
-                    mathModel: `<b>Dinamika Piston (disederhanakan):</b>
-                        Jika dinamika tekanan diasumsikan sangat cepat ($P \\approx K_p P_s$), maka:
-                        $$ (K_p P_s(t))A \\approx M\\frac{d^2x}{dt^2} + b\\frac{dx}{dt} + kx(t)$$`,
-                    transientAnalysis: `Kompresibilitas udara memberikan efek redaman yang signifikan. Namun, karena massa beban bisa bervariasi, sistem ini dapat menunjukkan perilaku <b>underdamped</b> (terutama dengan beban ringan) hingga <b>overdamped</b> (dengan beban berat).`,
-                    transferFunction: `Dengan mengasumsikan dinamika tekanan sangat cepat, fungsi alihnya menjadi sistem orde dua:
-                        $$G(s) = \\frac{X(s)}{P_s(s)} \\approx \\frac{K_p A}{Ms^2 + bs + k}$$`,
-                    blockDiagramKey: 'order2_pid',
-                    theory: `Aktuator pneumatik populer karena biayanya yang rendah dan bersih. Namun, kompresibilitas udara membuatnya sulit untuk dikontrol secara presisi. Sifat non-linear dari aliran udara dan gesekan seringkali menjadi tantangan utama.`
-                },
-                 "bellows-system": {
-                    title: "Sistem Bellows (Orde 2)",
-                    order: 2,
-                    params: { A: 0.01, k: 500, b: 10, M_eq: 1 },
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 0.1, max: 2, step: 0.05 },
-                    animation: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><path d="M100 50 L100 150 L110 145 L115 155 L125 145 L135 155 L145 145 L155 155 L165 145 L175 155 L185 145 L190 150 L200 150" stroke="#8b949e" stroke-width="2" fill="none" transform="rotate(90 150 100)"/><rect x="50" y="40" width="200" height="10" fill="#8b949e"/><rect x="50" y="150" width="200" height="10" fill="#58a6ff"/><line x1="250" y1="155" x2="280" y2="155" stroke="#3fb950" stroke-width="2" marker-end="url(#arrowX3)"/><text x="285" y="160" fill="#3fb950">x(t)</text><line x1="50" y1="90" x2="20" y2="90" stroke="#f85149" stroke-width="2" marker-end="url(#arrowPn2)"/><text x="0" y="95" fill="#f85149">Pin(t)</text><defs><marker id="arrowX3" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#3fb950"/></marker><marker id="arrowPn2" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149"/></marker></defs></svg>`,
-                    physicalModel: `Bellows adalah komponen fleksibel yang mengembang karena perubahan tekanan. Ia memiliki sifat seperti pegas (k), area efektif A, dan massa ekuivalen $M_{eq}$. Perubahan tekanan input menyebabkan pergerakan x(t).`,
-                    mathModel: `Jika dinamika pneumatik (pengisian) diabaikan, sistem ini dapat dimodelkan sebagai sistem mekanik orde 2 standar yang digerakkan oleh tekanan:
-                        $$P_{in}(t)A = M_{eq}\\frac{d^2x}{dt^2} + b\\frac{dx}{dt} + kx(t)$$`,
-                    transientAnalysis: `Sistem bellows, yang secara fisik mirip pegas, cenderung bersifat <b>underdamped</b>. Redaman alami (b) biasanya kecil, menyebabkan osilasi saat merespon perubahan tekanan yang tiba-tiba.`,
-                    transferFunction: `Dengan mengabaikan dinamika pneumatik, sistem ini menjadi orde dua:
-                        $$G(s) \\approx \\frac{A}{M_{eq}s^2+bs+k}$$`,
-                    blockDiagramKey: 'order2_pid',
-                    theory: `Bellows sering digunakan dalam sensor tekanan dan aktuator presisi rendah. Modelnya menunjukkan bagaimana dinamika fluida dan mekanik dapat digabungkan. Seringkali salah satu dinamika (yang lebih cepat) dapat diabaikan untuk mendapatkan model yang lebih sederhana.`
-                },
-                 "nozzle-flapper": {
-                    title: "Amplifier Nozzle-Flapper (Orde 2)",
-                    order: 2,
-                    params: { A: 0.001, M: 0.1, k: 1000, b: 50, K_nf: 5e6},
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 0.1, max: 2, step: 0.05 },
-                    animation: `<svg viewBox="0 0 400 200" xmlns="http://www.w3.org/2000/svg"><rect x="50" y="50" width="10" height="100" fill="#8b949e"/><rect x="150" y="95" width="100" height="10" fill="#58a6ff"/><line x1="150" y1="100" x2="100" y2="120" stroke="#f85149" marker-end="url(#arrowNF1)"/><text x="90" y="140" fill="#f85149">x_in</text><rect x="200" y="50" width="20" height="45" fill="#c9d1d9"/><text x="180" y="40" fill="#c9d1d9">Nozzle</text><path d="M280 150 L280 50 L290 55 L295 45 L305 55 L315 45 L325 55 L335 45 L340 50 L350 50" stroke="#8b949e" stroke-width="2" fill="none"/><text x="355" y="70" fill="#3fb950">x_out</text><defs><marker id="arrowNF1" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#f85149"/></marker></defs></svg>`,
-                    physicalModel: `Sebuah mekanisme penguat pneumatik. Input kecil $x_{in}$ menggerakkan flapper, yang menyebabkan perubahan besar pada tekanan nozzle $P_n$. Tekanan ini diumpankan ke bellows, menghasilkan output gerakan $x_{out}$ yang besar.`,
-                    mathModel: `<b>Hubungan Nozzle-Flapper (statis, dilinearisasi):</b>
-                        $\\Delta P_n = -K_{nf} \\Delta x_{in}$
-                        <br><b>Dinamika Bellows (orde 2):</b>
-                        $$(M s^2 + b s + k) X_{out}(s) = A P_n(s)$$`,
-                    transientAnalysis: `Respons dari mekanisme ini didominasi oleh dinamika bellows output, yang merupakan sistem massa-pegas-peredam. Oleh karena itu, perilakunya dapat dianalisis menggunakan rasio redaman $\\zeta$ seperti sistem orde dua lainnya.`,
-                    transferFunction: `$$G(s) = \\frac{X_{out}(s)}{X_{in}(s)} = \\frac{-A K_{nf}}{M s^2 + b s + k}$$`,
-                    blockDiagramKey: 'order2_pid',
-                    theory: `Amplifier Nozzle-Flapper adalah komponen kunci dalam kontroler pneumatik 'jadul'. Ia menunjukkan bagaimana prinsip fluida dapat digunakan untuk menciptakan penguatan sinyal yang sangat tinggi. Prinsip kerjanya tetap menjadi contoh yang sangat baik dari rekayasa sistem kendali.`
-                }
-            }
-        },
-        electrical: {
-            title: "Sistem Listrik",
-            examples: {
-                 "rc-circuit": {
-                    title: "Rangkaian RC (Orde 1)",
-                    order: 1,
-                    params: { R: 1000, C: 0.001 },
-                    transientDef: { type: 'tau', name: 'Konstanta Waktu (τ)', min: 0.1, max: 5, step: 0.1 },
-                    animation: `<svg viewBox="0 0 350 150" xmlns="http://www.w3.org/2000/svg"><path d="M 20 75 L 50 75" stroke="#c9d1d9" stroke-width="2"/><circle cx="65" cy="75" r="15" fill="none" stroke="#c9d1d9" stroke-width="2"/><text x="60" y="80" fill="#c9d1d9" font-size="12">Vi</text><path d="M 80 75 L 120 75" stroke="#c9d1d9" stroke-width="2"/><path d="M 120 75 l 10 -15 l 20 30 l 20 -30 l 20 30 l 10 -15" stroke="#c9d1d9" stroke-width="2" fill="none"/><text x="145" y="55" fill="#c9d1d9">R</text><path d="M 200 75 L 240 75" stroke="#c9d1d9" stroke-width="2"/><path d="M 240 60 L 240 90 M 260 60 L 260 90" stroke="#c9d1d9" stroke-width="2" fill="none"/><text x="245" y="55" fill="#c9d1d9">C</text><path d="M 260 75 L 300 75" stroke="#c9d1d9" stroke-width="2"/><path d="M 300 75 L 300 110 L 80 110 L 80 75" stroke="#c9d1d9" stroke-width="2" fill="none"/><line x1="250" y1="90" x2="250" y2="120" stroke="#3fb950"/><line x1="250" y1="60" x2="250" y2="30" stroke="#3fb950"/><text x="255" y="45" fill="#3fb950">Vo</text></svg>`,
-                    physicalModel: `Sebuah rangkaian seri sederhana terdiri dari resistor (R) dan kapasitor (C). Tegangan input $V_{in}(t)$ diterapkan, dan tegangan output $V_{out}(t)$ diukur pada kapasitor.`,
-                    mathModel: `<b>Hukum Tegangan Kirchhoff (KVL):</b>
-                        $$RC \\frac{dV_{out}(t)}{dt} + V_{out}(t) = V_{in}(t)$$`,
-                    transientAnalysis: `Konstanta waktu untuk rangkaian RC adalah $\\tau = RC$. Ini adalah waktu yang dibutuhkan tegangan kapasitor untuk mencapai 63.2% dari tegangan sumber saat pengisian. Semakin besar nilai R atau C, semakin lama waktu pengisian (respon lebih lambat).`,
-                    transferFunction: `$$G(s) = \\frac{V_{out}(s)}{V_{in}(s)} = \\frac{1}{RCs+1}$$
-                        Ini adalah sistem orde satu yang berfungsi sebagai filter low-pass.`,
-                    blockDiagramKey: 'order1_pid',
-                    theory: `Rangkaian RC adalah salah satu blok bangunan paling fundamental dalam elektronika. Sebagai filter low-pass, ia melewatkan sinyal frekuensi rendah dan meredam sinyal frekuensi tinggi. Ini adalah analogi listrik langsung dari sistem massa-peredam dan sistem tangki fluida.`
-                },
-                 "rlc-circuit": {
-                    title: "Rangkaian RLC (Orde 2)",
-                    order: 2,
-                    params: { R: 100, L: 0.1, C: 0.00001 },
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 0.1, max: 2, step: 0.05 },
-                    animation: `<svg viewBox="0 0 400 150" xmlns="http://www.w3.org/2000/svg"><path d="M 20 75 L 50 75" stroke="#c9d1d9" stroke-width="2"/><circle cx="65" cy="75" r="15" fill="none" stroke="#c9d1d9" stroke-width="2"/><text x="60" y="80" fill="#c9d1d9" font-size="12">Vi</text><path d="M 80 75 L 120 75" stroke="#c9d1d9" stroke-width="2"/><path d="M 120 75 l 10 -15 l 20 30 l 20 -30 l 20 30 l 10 -15" stroke="#c9d1d9" stroke-width="2" fill="none"/><text x="145" y="55" fill="#c9d1d9">R</text><path d="M 200 75 L 240 75" stroke="#c9d1d9" stroke-width="2"/><path d="M 240 75 C 245 60, 255 60, 260 75 C 265 90, 275 90, 280 75" stroke="#c9d1d9" stroke-width="2" fill="none"/><text x="255" y="55" fill="#c9d1d9">L</text><path d="M 280 75 L 320 75" stroke="#c9d1d9" stroke-width="2"/><path d="M 320 60 L 320 90 M 340 60 L 340 90" stroke="#c9d1d9" stroke-width="2" fill="none"/><text x="325" y="55" fill="#c9d1d9">C</text><path d="M 340 75 L 380 75" stroke="#c9d1d9" stroke-width="2"/><path d="M 380 75 L 380 110 L 80 110 L 80 75" stroke="#c9d1d9" stroke-width="2" fill="none"/><line x1="330" y1="90" x2="330" y2="120" stroke="#3fb950"/><line x1="330" y1="60" x2="330" y2="30" stroke="#3fb950"/><text x="335" y="45" fill="#3fb950">Vo</text></svg>`,
-                    physicalModel: `Sebuah rangkaian seri yang terdiri dari resistor (R), induktor (L), dan kapasitor (C). Tegangan output $V_{out}(t)$ diukur pada kapasitor.`,
-                    mathModel: `<b>Hukum Tegangan Kirchhoff (KVL):</b>
-                        $$V_{in}(t) = L C \\frac{d^2V_{out}}{dt^2} + RC \\frac{dV_{out}}{dt} + V_{out}(t)$$`,
-                    transientAnalysis: `Respon rangkaian RLC ditentukan oleh rasio redaman $\\zeta = \\frac{R}{2}\\sqrt{\\frac{C}{L}}$. Nilai R yang rendah menghasilkan respon <b>underdamped</b> (osilasi), sementara R yang tinggi menghasilkan respon <b>overdamped</b>. Nilai R tertentu akan menghasilkan respon <b>critically damped</b>.`,
-                    transferFunction: `$$G(s) = \\frac{V_{out}(s)}{V_{in}(s)} = \\frac{1}{LCs^2 + RCs + 1}$$`,
-                    blockDiagramKey: 'order2_pid',
-                    theory: `Rangkaian RLC adalah prototipe sistem orde dua dalam domain listrik. Kemampuannya untuk berosilasi (resonansi) adalah dasar dari banyak aplikasi, termasuk filter dan osilator. Induktor menyimpan energi dalam medan magnet, kapasitor dalam medan listrik, dan resistor mendisipasikannya.`
-                },
-                "opamp-integrator": {
-                    title: "Op-Amp Integrator",
-                    order: 1,
-                    params: { R: 10000, C: 0.0001 },
-                    transientDef: { type: 'tau', name: 'Gain Integrator (1/RC)', min: 1, max: 20, step: 0.5 },
-                    animation: `<svg viewBox="0 0 350 150" xmlns="http://www.w3.org/2000/svg"><path d="M 150 50 L 150 110 L 220 80 L 150 50 Z" fill="none" stroke="#c9d1d9" stroke-width="2"/><line x1="150" y1="65" x2="130" y2="65" stroke="#c9d1d9" stroke-width="2"/><line x1="150" y1="95" x2="130" y2="95" stroke="#c9d1d9" stroke-width="2"/><text x="135" y="60" font-size="14" fill="#c9d1d9">-</text><text x="135" y="103" font-size="14" fill="#c9d1d9">+</text><line x1="50" y1="65" x2="80" y2="65" stroke="#c9d1d9" stroke-width="2"/><text x="30" y="70" fill="#f85149">Vin</text><path d="M 80 65 l 5 -10 l 10 20 l 10 -20 l 10 20 l 5 -10" stroke="#c9d1d9" stroke-width="2" fill="none"/><text x="95" y="50" fill="#c9d1d9">R</text><line x1="120" y1="65" x2="130" y2="65" stroke="#c9d1d9" stroke-width="2"/><line x1="130" y1="65" x2="100" y2="30" stroke="#c9d1d9" stroke-width="2"/><line x1="220" y1="80" x2="250" y2="80" stroke="#c9d1d9" stroke-width="2"/><line x1="250" y1="80" x2="250" y2="30" stroke="#c9d1d9" stroke-width="2"/><line x1="100" y1="30" x2="250" y2="30" stroke="#c9d1d9" stroke-width="2"/><path d="M 160 15 L 160 45 M 170 15 L 170 45" stroke="#c9d1d9" stroke-width="2" fill="none"/><text x="175" y="35" fill="#c9d1d9">C</text><line x1="220" y1="80" x2="270" y2="80" stroke="#c9d1d9" stroke-width="2"/><text x="275" y="85" fill="#3fb950">Vout</text><line x1="130" y1="95" x2="110" y2="95" stroke="#c9d1d9" stroke-width="2"/><line x1="110" y1="95" x2="110" y2="115" stroke="#c9d1d9" stroke-width="2"/><line x1="100" y1="115" x2="120" y2="115" stroke="#c9d1d9" stroke-width="2"/></svg>`,
-                    physicalModel: `Sebuah op-amp ideal dikonfigurasikan dalam mode inverting. Sebuah resistor R di jalur input, dan kapasitor C di jalur umpan balik. Input non-inverting di-ground-kan.`,
-                    mathModel: `Dengan asumsi op-amp ideal, arus melalui R dan C sama:
-                        $$\\frac{V_{in}(t)}{R} = -C \\frac{dV_{out}(t)}{dt}$$
-                        $$V_{out}(t) = -\\frac{1}{RC} \\int V_{in}(t) dt$$`,
-                    transientAnalysis: `Sebagai integrator murni, responnya terhadap input step (konstan) adalah sebuah ramp (garis lurus) dengan kemiringan $-1/RC$. Semakin besar gain integrator (semakin kecil $\\tau=RC$), semakin curam ramp outputnya.`,
-                    transferFunction: `$$G(s) = \\frac{V_{out}(s)}{V_{in}(s)} = -\\frac{1}{RCs}$$`,
-                    blockDiagramKey: 'order1_pid',
-                    theory: `Rangkaian integrator adalah blok fundamental dalam komputasi analog dan sistem kendali. Ia melakukan operasi integrasi. Dalam kendali, aksi Integral ('I' dalam PID) digunakan untuk mengakumulasi error dan akhirnya mengeliminasi steady-state error.`
-                },
-                "dc-motor-pos": {
-                    title: "Motor DC (Kontrol Posisi)",
-                    order: 2,
-                    params: { J: 0.01, b: 0.1, K: 0.01, R: 1 },
-                    transientDef: { type: 'zeta', name: 'Rasio Redaman (ζ)', min: 0.1, max: 2, step: 0.05 },
-                    animation: `<svg viewBox="0 0 300 200" xmlns="http://www.w3.org/2000/svg"><circle cx="150" cy="100" r="60" fill="none" stroke="#8b949e" stroke-width="4"/><circle cx="150" cy="100" r="10" fill="#c9d1d9"/><line id="motor-shaft" x1="150" y1="100" x2="240" y2="100" stroke="#58a6ff" stroke-width="6"/><text x="140" y="80" font-size="12" fill="#c9d1d9">Rotor (J,b)</text><text x="30" y="40" font-size="14" fill="#f85149">Input: Va(t)</text><text x="30" y="60" font-size="14" fill="#3fb950">Output: θ(t)</text><path d="M220 90 L240 100 L220 110" fill="none" stroke="#3fb950" stroke-width="2"/></svg>`,
-                    physicalModel: `Sistem ini sama dengan motor DC sebelumnya, namun fokus kita adalah pada posisi sudut $\\theta(t)$ sebagai output utama, bukan kecepatan. Ini adalah kasus penggunaan yang lebih umum dalam robotika dan otomasi.`,
-                    mathModel: `<b>Persamaan Elektrik (KVL, L diabaikan):</b>
-                        $$V_a(t) = R i_a(t) + K \\frac{d\\theta(t)}{dt}$$
-                        <b>Persamaan Mekanik (Torsi):</b>
-                        $$T(t) = K i_a(t) = J \\frac{d^2\\theta(t)}{dt^2} + b \\frac{d\\theta(t)}{dt}$$`,
-                    transientAnalysis: `Meskipun sistem motor DC memiliki integrator, dinamika loop tertutupnya (dengan kontroler proporsional sederhana) akan berperilaku seperti sistem orde dua. Oleh karena itu, rasio redaman $\\zeta$ tetap menjadi parameter kunci untuk menganalisis apakah responnya akan berosilasi (underdamped) atau tidak (critically/overdamped).`,
-                    transferFunction: `Jika induktansi $L$ diabaikan, fungsi alih dari tegangan input Va(s) ke posisi sudut output $\\Theta(s)$ adalah:
-                        $$G(s) = \\frac{\\Theta(s)}{V_a(s)} = \\frac{K}{s(R(Js+b)+K^2)} = \\frac{K/R}{s(Js + b + K^2/R)}$$`,
-                    blockDiagramKey: 'order2_integrator_pid',
-                    theory: `Motor DC untuk kontrol posisi adalah contoh sistem elektromekanis yang sangat umum. Sistem ini secara inheren memiliki integrator (karena $s$ di penyebut) yang membantu menghilangkan steady-state error untuk input step, tetapi juga membuat sistem rentan terhadap ketidakstabilan. Kontrol PID, khususnya dengan komponen Derivative (D), sangat penting untuk menstabilkan dan meningkatkan performa.`
-                }
-            }
-        }
-    };
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
 
-    let activePidChart = null;
-    let activeTransientChart = null;
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        const systemCards = document.querySelectorAll('.system-card');
-        systemCards.forEach(card => {
-            card.addEventListener('click', () => {
-                const systemId = card.dataset.system;
-                generateSubSelection(systemId);
-            });
-        });
-    });
+            // ==========================================================
+            // Variabel Global & Referensi Elemen DOM
+            // ==========================================================
+            
+            const plantTypeSelect = document.getElementById('plant-type');
+            
+            const paramsKtau = document.getElementById('params-k-tau');
+            const paramsZetaWn = document.getElementById('params-zeta-wn');
+            
+            const kSlider = document.getElementById('k');
+            const tauSlider = document.getElementById('tau');
+            const kOrd2Slider = document.getElementById('k_ord2');
+            const zetaSlider = document.getElementById('zeta');
+            const omegaNSlider = document.getElementById('omega_n');
+            
+            const pidEnableCheckbox = document.getElementById('pid-enable');
+            const pidParamsContainer = document.getElementById('pid-params');
+            const kpSlider = document.getElementById('kp');
+            const kiSlider = document.getElementById('ki');
+            const kdSlider = document.getElementById('kd');
+            
+            const tachoEnableCheckbox = document.getElementById('tacho-enable');
+            const tachoParamsContainer = document.getElementById('tacho-params');
+            const ktSlider = document.getElementById('kt');
+            const tachoDesc = document.getElementById('tacho-desc');
 
-    function generateSubSelection(systemId) {
-        const subSelectionContainer = document.getElementById('sub-selection-container');
-        const subSelectionDiv = document.getElementById('sub-selection');
-        subSelectionDiv.innerHTML = '';
-        const system = systemsData[systemId];
-        
-        const initialMessage = document.getElementById('initial-message');
-        if (initialMessage) {
-            initialMessage.style.display = 'none';
-        }
+            const clTfDisplay = document.getElementById('cl-tf-display');
+            const clAnalysisText = document.getElementById('cl-analysis-text');
+            const clPolesAnalysis = document.getElementById('cl-poles-analysis');
+            
+            const plotContainer = document.getElementById('plot-container');
+            
+            // [BARU] Referensi elemen interpretasi
+            const transientInterpretationDiv = document.getElementById('transient-interpretation');
+            const stabilityInterpretationDiv = document.getElementById('stability-interpretation');
 
-        Object.keys(system.examples).forEach(exampleId => {
-            const example = system.examples[exampleId];
-            const button = document.createElement('button');
-            button.classList.add('sub-button');
-            button.textContent = example.title;
-            button.dataset.system = systemId;
-            button.dataset.example = exampleId;
-            button.onclick = () => {
-                document.querySelectorAll('.sub-button').forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                displaySystem(systemId, exampleId);
+            // Konstanta Simulasi
+            const T_SIM_MAX = 10.0;
+            const DT = 0.005;
+            const N_POINTS = Math.floor(T_SIM_MAX / DT);
+            
+            // ==========================================================
+            // Kelas Helper: Polinomial dan Transfer Function (TF)
+            // ==========================================================
+            class Polynomial {
+                constructor(coeffs) {
+                    this.coeffs = coeffs.map(c => c || 0);
+                }
+                
+                static multiply(p1, p2) {
+                    const d1 = p1.coeffs.length - 1;
+                    const d2 = p2.coeffs.length - 1;
+                    const result = new Array(d1 + d2 + 1).fill(0);
+                    for (let i = 0; i <= d1; i++) {
+                        for (let j = 0; j <= d2; j++) {
+                            result[i + j] += p1.coeffs[i] * p2.coeffs[j];
+                        }
+                    }
+                    return new Polynomial(result);
+                }
+                
+                static add(p1, p2) {
+                    const d1 = p1.coeffs.length;
+                    const d2 = p2.coeffs.length;
+                    const maxLen = Math.max(d1, d2);
+                    const result = new Array(maxLen).fill(0);
+                    for (let i = 0; i < maxLen; i++) {
+                        const c1 = p1.coeffs[d1 - 1 - i] || 0;
+                        const c2 = p2.coeffs[d2 - 1 - i] || 0;
+                        result[maxLen - 1 - i] = c1 + c2;
+                    }
+                    return new Polynomial(result);
+                }
+
+                toLatexString() {
+                    let s = "";
+                    const degree = this.coeffs.length - 1;
+                    for (let i = 0; i <= degree; i++) {
+                        const coeff = this.coeffs[i];
+                        if (Math.abs(coeff) < 1e-9) continue;
+                        
+                        const power = degree - i;
+                        const absCoeff = Math.abs(coeff);
+                        const sign = coeff > 0 ? (i > 0 && s !== "" ? " + " : "") : " - ";
+                        
+                        s += sign;
+                        
+                        if (absCoeff.toFixed(4) !== '1.0000' || power === 0) {
+                            s += absCoeff.toFixed(4).replace(/\.?0+$/, '');
+                        }
+                        
+                        if (power > 0) {
+                            s += "s";
+                            if (power > 1) s += `^{${power}}`;
+                        }
+                    }
+                    return s || "0";
+                }
+            }
+            
+            class TransferFunction {
+                constructor(num, den) {
+                    this.num = num;
+                    this.den = den;
+                }
+                
+                toLatexString(name = "G(s)") {
+                    return `$$ ${name} = \\frac{${this.num.toLatexString()}}{${this.den.toLatexString()}} $$`;
+                }
+            }
+
+            // ==========================================================
+            // Fungsi Event Listener & Inisialisasi Utama
+            // ==========================================================
+
+            const allControls = document.querySelectorAll('input, select');
+            allControls.forEach(control => control.addEventListener('input', updateSimulator));
+
+            const computedStyles = getComputedStyle(document.documentElement);
+            const colorText = computedStyles.getPropertyValue('--color-text').trim();
+            const colorPrimary = computedStyles.getPropertyValue('--color-primary').trim();
+            const colorSecondary = computedStyles.getPropertyValue('--color-secondary').trim();
+            const colorDanger = computedStyles.getPropertyValue('--color-danger').trim();
+
+            const plotlyLayout = {
+                title: 'Respon Sistem terhadap Unit Step Input',
+                xaxis: { title: 'Waktu (detik)', gridcolor: 'rgba(255,255,255,0.1)', zerolinecolor: colorPrimary },
+                yaxis: { title: 'Amplitudo', gridcolor: 'rgba(255,255,255,0.1)', zerolinecolor: 'rgba(255,255,255,0.1)'},
+                plot_bgcolor: 'transparent',
+                paper_bgcolor: 'transparent',
+                font: { color: colorText },
+                legend: { x: 0.5, y: -0.2, orientation: 'h', xanchor: 'center' },
+                margin: { l: 60, r: 30, b: 60, t: 80 }
             };
-            subSelectionDiv.appendChild(button);
-        });
-        
-        subSelectionContainer.style.display = 'block';
-        
-        // Auto-click the first example
-        if (subSelectionDiv.firstChild) {
-            subSelectionDiv.firstChild.click();
-        }
-    }
 
-    function displaySystem(systemId, exampleId) {
-        const data = systemsData[systemId].examples[exampleId];
-        const contentDiv = document.getElementById('simulation-content');
+            initPlot();
+            updateSimulator();
 
-        contentDiv.classList.remove('visible');
+            // ==========================================================
+            // Fungsi Update Utama
+            // ==========================================================
 
-        // Clean up old charts
-        if (activePidChart) activePidChart.destroy();
-        if (activeTransientChart) activeTransientChart.destroy();
-        activePidChart = null;
-        activeTransientChart = null;
+            function updateSimulator() {
+                const params = getParameters();
+                updateUIState(params);
+                const tfs = calculateTransferFunctions(params);
+                updateTfDisplays(tfs);
+                const simulationData = runSimulation(tfs.closedLoop);
+                drawPlot(simulationData, params);
+                updateAnalysis(tfs.closedLoop, simulationData, params);
+            }
+            
+            // ==========================================================
+            // Bagian 1: Pengambilan & Update UI
+            // ==========================================================
+            function getParameters() {
+                return {
+                    plantType: plantTypeSelect.value,
+                    k: parseFloat(kSlider.value),
+                    tau: parseFloat(tauSlider.value),
+                    k_ord2: parseFloat(kOrd2Slider.value),
+                    zeta: parseFloat(zetaSlider.value),
+                    omega_n: parseFloat(omegaNSlider.value),
+                    pidEnabled: pidEnableCheckbox.checked,
+                    kp: parseFloat(kpSlider.value),
+                    ki: parseFloat(kiSlider.value),
+                    kd: parseFloat(kdSlider.value),
+                    tachoEnabled: tachoEnableCheckbox.checked,
+                    kt: parseFloat(ktSlider.value),
+                };
+            }
+            
+            function updateUIState(params) {
+                document.getElementById('k-val').textContent = params.k.toFixed(2);
+                document.getElementById('tau-val').textContent = params.tau.toFixed(2);
+                document.getElementById('k_ord2-val').textContent = params.k_ord2.toFixed(2);
+                document.getElementById('zeta-val').textContent = params.zeta.toFixed(2);
+                document.getElementById('omega_n-val').textContent = params.omega_n.toFixed(2);
+                document.getElementById('kp-val').textContent = params.kp.toFixed(2);
+                document.getElementById('ki-val').textContent = params.ki.toFixed(2);
+                document.getElementById('kd-val').textContent = params.kd.toFixed(2);
+                document.getElementById('kt-val').textContent = params.kt.toFixed(2);
+                
+                const isType3 = params.plantType === "3";
+                paramsKtau.classList.toggle('hidden', isType3);
+                paramsZetaWn.classList.toggle('hidden', !isType3);
+                
+                pidParamsContainer.classList.toggle('hidden', !params.pidEnabled);
+                tachoParamsContainer.classList.toggle('hidden', !params.tachoEnabled);
+                
+                let tachoHtml = "";
+                if (params.tachoEnabled) {
+                    if (params.plantType === "2") {
+                        tachoHtml = `(Feedback Kecepatan $H(s) = K_t s = ${params.kt.toFixed(2)}s$)`;
+                    } else {
+                        tachoHtml = `(Feedback Proporsional $H(s) = K_t = ${params.kt.toFixed(2)}$)`;
+                    }
+                } else {
+                    tachoHtml = "(Unity Feedback $H(s) = 1$)";
+                }
+                tachoDesc.innerHTML = tachoHtml;
+            }
+            
+            // ==========================================================
+            // Bagian 2: Kalkulasi Matematika
+            // ==========================================================
+            
+            function calculateTransferFunctions(params) {
+                let Gp, C, H;
 
-        setTimeout(() => {
-            let transientSectionHTML = '';
-            if (data.transientDef.type !== 'none') {
-                 transientSectionHTML = `
-                <div class="content-segment">
-                    <h2>Analisis Respon Transien (Open Loop)</h2>
-                    <p>${data.transientAnalysis}</p>
-                    <div class="simulation-container">
-                        <div class="controls-panel">
-                            <div class="control-group">
-                                <label for="transient-slider">${data.transientDef.name}: <span id="transient-value" class="value-display">1</span></label>
-                                <input type="range" min="${data.transientDef.min}" max="${data.transientDef.max}" value="${(data.transientDef.min + data.transientDef.max)/2}" step="${data.transientDef.step}" class="slider" id="transient-slider">
-                            </div>
-                        </div>
-                        <div id="transient-chart-container">
-                            <canvas id="transientResponseChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="explanation-box" id="transient-explanation"><p>Geser slider untuk melihat perubahan.</p></div>
-                </div>`;
-            } else {
-                 transientSectionHTML = `
-                <div class="content-segment">
-                     <h2>Analisis Respon Transien</h2>
-                     <p>${data.transientAnalysis}</p>
-                </div>
+                if (params.plantType === "1") {
+                    Gp = new TransferFunction(new Polynomial([params.k]), new Polynomial([params.tau, 1]));
+                } else if (params.plantType === "2") {
+                    Gp = new TransferFunction(new Polynomial([params.k]), new Polynomial([params.tau, 1, 0]));
+                } else {
+                    const { k_ord2: k, omega_n: wn, zeta: z } = params;
+                    Gp = new TransferFunction(new Polynomial([k * wn * wn]), new Polynomial([1, 2 * z * wn, wn * wn]));
+                }
+                
+                C = params.pidEnabled ? new TransferFunction(new Polynomial([params.kd, params.kp, params.ki]), new Polynomial([1, 0])) : new TransferFunction(new Polynomial([1]), new Polynomial([1]));
+                
+                if (params.tachoEnabled) {
+                    H = (params.plantType === "2") ? new TransferFunction(new Polynomial([params.kt, 0]), new Polynomial([1])) : new TransferFunction(new Polynomial([params.kt]), new Polynomial([1]));
+                } else {
+                    H = new TransferFunction(new Polynomial([1]), new Polynomial([1]));
+                }
+                
+                const Num_CGp = Polynomial.multiply(C.num, Gp.num);
+                const Den_CGp = Polynomial.multiply(C.den, Gp.den);
+                
+                const Num_CL = Polynomial.multiply(Num_CGp, H.den);
+                const Den_CL = Polynomial.add(Polynomial.multiply(Den_CGp, H.den), Polynomial.multiply(Num_CGp, H.num));
+                
+                return { plant: Gp, closedLoop: new TransferFunction(Num_CL, Den_CL) };
+            }
+            
+            function updateTfDisplays(tfs) {
+                clTfDisplay.innerHTML = tfs.closedLoop.toLatexString("G_{CL}(s)");
+                if (window.MathJax && window.MathJax.typeset) {
+                    MathJax.typeset([clTfDisplay, tachoDesc]);
+                }
+            }
+
+            // ==========================================================
+            // Bagian 3: Simulasi & Plotting
+            // ==========================================================
+            
+            function runSimulation(tf) {
+                return simulateTF(tf);
+            }
+            
+            function simulateTF(tf) {
+                let b_coeffs = [...tf.num.coeffs].reverse();
+                let a_coeffs = [...tf.den.coeffs].reverse();
+                
+                const n = a_coeffs.length - 1;
+                const m = b_coeffs.length - 1;
+                
+                const time = new Array(N_POINTS);
+                const response = new Array(N_POINTS);
+                const input = 1.0;
+                
+                const a_n = a_coeffs[n];
+                if (Math.abs(a_n) < 1e-9) {
+                    return { time: Array(N_POINTS).fill(0).map((_,i) => i*DT), response: Array(N_POINTS).fill(NaN) };
+                }
+
+                const a = a_coeffs.map(c => c / a_n);
+                const b = b_coeffs.map(c => c / a_n);
+                
+                for (let i = m + 1; i <= n; i++) b[i] = 0;
+                
+                if (n === 0) {
+                    const gain = b[0] / a[0];
+                    for (let i = 0; i < N_POINTS; i++) {
+                        time[i] = i * DT;
+                        response[i] = gain * input;
+                    }
+                    return { time, response };
+                }
+
+                const state = new Array(n).fill(0.0);
+                
+                for (let i = 0; i < N_POINTS; i++) {
+                    time[i] = i * DT;
+                    
+                    let output_y = b.reduce((sum, bi, j) => sum + (j < n ? bi * state[j] : 0), 0) + b[n] * input;
+                    response[i] = output_y;
+                    
+                    const state_dot = new Array(n).fill(0.0);
+                    for (let j = 0; j < n - 1; j++) state_dot[j] = state[j+1];
+                    
+                    let x_n_dot = input - a.reduce((sum, ai, j) => sum + (j < n ? ai * state[j] : 0), 0);
+                    state_dot[n-1] = x_n_dot;
+                    
+                    for (let j = 0; j < n; j++) state[j] += state_dot[j] * DT;
+                }
+                
+                return { time, response };
+            }
+
+            function initPlot() {
+                Plotly.newPlot(plotContainer, [], plotlyLayout, {responsive: true});
+            }
+            
+            function drawPlot(data) {
+                Plotly.react(plotContainer, [
+                    { x: data.time, y: data.response, mode: 'lines', name: 'Respon Sistem (Closed Loop)', line: { color: colorDanger, width: 3 } },
+                    { x: [0, T_SIM_MAX], y: [1.0, 1.0], mode: 'lines', name: 'Setpoint (Input)', line: { color: colorSecondary, dash: 'dash', width: 2 } }
+                ], plotlyLayout);
+            }
+
+            // ==========================================================
+            // Bagian 4: Analisis & Interpretasi
+            // ==========================================================
+            
+            function updateAnalysis(closedLoopTf, data, params) {
+                // Analisis Kuantitatif
+                const statsCL = calculateResponseStats(data.response, data.time, 1.0);
+                clAnalysisText.innerHTML = formatAnalysisHTML(statsCL);
+
+                const poles = findPolynomialRoots(closedLoopTf.den.coeffs);
+                clPolesAnalysis.innerHTML = formatPolesHTML(poles);
+                
+                // Analisis Kualitatif (Interpretasi)
+                transientInterpretationDiv.innerHTML = generateTransientInterpretation(statsCL, params);
+                stabilityInterpretationDiv.innerHTML = generateStabilityInterpretation(poles);
+            }
+            
+            function formatAnalysisHTML(stats) {
+                return `
+                    <table>
+                        <tr><th>Overshoot Maksimum (M<sub>p</sub>)</th><td>${stats.mp.toFixed(2)} %</td></tr>
+                        <tr><th>Waktu Puncak (T<sub>p</sub>)</th><td>${stats.tp.toFixed(3)} s</td></tr>
+                        <tr><th>Waktu Naik (T<sub>r</sub> 10-90%)</th><td>${stats.tr.toFixed(3)} s</td></tr>
+                        <tr><th>Waktu Tunak (T<sub>s</sub> 2%)</th><td>${stats.ts.toFixed(3)} s</td></tr>
+                        <tr><th>Nilai Akhir (Y<sub>ss</sub>)</th><td>${stats.yss.toFixed(3)}</td></tr>
+                        <tr><th>Error Steady State (e<sub>ss</sub>)</th><td>${stats.ess.toFixed(3)}</td></tr>
+                    </table>
                 `;
             }
 
-
-            contentDiv.innerHTML = `
-                <div class="content-segment">
-                    <div class="two-column-grid">
-                        <div class="animation-container">
-                            ${data.animation}
-                        </div>
-                        <div>
-                            <h2>Model Fisis</h2>
-                            <p>${data.physicalModel}</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="content-segment">
-                    <h2>Model Matematis</h2>
-                    <div class="math-notation">
-                        ${data.mathModel}
-                    </div>
-                </div>
-                
-                <div class="content-segment">
-                    <h2>Diagram Blok dan Fungsi Alih</h2>
-                     <div class="two-column-grid">
-                        <div class="block-diagram-container" id="block-diagram-wrapper">
-                            ${blockDiagrams[data.blockDiagramKey]}
-                        </div>
-                        <div class="math-notation">
-                            ${data.transferFunction}
-                        </div>
-                    </div>
-                </div>
-
-                ${transientSectionHTML}
-
-                <div class="content-segment">
-                    <h2>Aksi Kendali PID (Closed Loop)</h2>
-                    <div class="simulation-container">
-                        <div class="controls-panel">
-                            <div class="control-group">
-                                <label for="kp-slider">Proportional (Kp): <span id="kp-value" class="value-display">1</span></label>
-                                <input type="range" min="0" max="50" value="5" step="0.5" class="slider" id="kp-slider">
-                            </div>
-                            <div class="control-group">
-                                <label for="ki-slider">Integral (Ki): <span id="ki-value" class="value-display">0</span></label>
-                                <input type="range" min="0" max="50" value="1" step="0.5" class="slider" id="ki-slider">
-                            </div>
-                            <div class="control-group">
-                                <label for="kd-slider">Derivative (Kd): <span id="kd-value" class="value-display">0</span></label>
-                                <input type="range" min="0" max="20" value="0.5" step="0.1" class="slider" id="kd-slider">
-                            </div>
-                        </div>
-                        <div id="chart-container">
-                            <canvas id="pidResponseChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="explanation-box" id="pid-explanation"><p>Geser slider untuk melihat efek setiap parameter kendali.</p></div>
-                </div>
-                
-                <div class="content-segment">
-                    <h2>Analisis & Konsep Teori</h2>
-                    <p>${data.theory}</p>
-                </div>
-            `;
-
-            MathJax.typesetPromise().then(() => {
-                setupSimulations(data);
-                contentDiv.classList.add('visible');
-            });
-        }, 300); // Wait for fade out
-    }
-    
-    function setupSimulations(data) {
-        // Setup PID Simulation
-        const kpSlider = document.getElementById('kp-slider');
-        const kiSlider = document.getElementById('ki-slider');
-        const kdSlider = document.getElementById('kd-slider');
-        
-        function updatePidSystem() {
-            const Kp = parseFloat(kpSlider.value);
-            const Ki = parseFloat(kiSlider.value);
-            const Kd = parseFloat(kdSlider.value);
-            
-            document.getElementById('kp-value').textContent = Kp.toFixed(1);
-            document.getElementById('ki-value').textContent = Ki.toFixed(1);
-            document.getElementById('kd-value').textContent = Kd.toFixed(1);
-
-            const responseData = simulatePidResponse(data, Kp, Ki, Kd);
-            
-            if (activePidChart) {
-                activePidChart.data.labels = responseData.labels;
-                activePidChart.data.datasets[0].data = responseData.data;
-                activePidChart.update('none');
-            } else {
-                const ctx = document.getElementById('pidResponseChart')?.getContext('2d');
-                if(ctx) activePidChart = createChart(ctx, responseData, 'Respon Sistem Terkendali (Output)');
-            }
-            updatePidExplanation(Kp, Ki, Kd, data.order);
-        }
-        
-        kpSlider.addEventListener('input', updatePidSystem);
-        kiSlider.addEventListener('input', updatePidSystem);
-        kdSlider.addEventListener('input', updatePidSystem);
-        updatePidSystem();
-
-        // Setup Transient Simulation (if applicable)
-        const transientSlider = document.getElementById('transient-slider');
-        if (transientSlider) {
-            function updateTransientSystem() {
-                const paramValue = parseFloat(transientSlider.value);
-                document.getElementById('transient-value').textContent = paramValue.toFixed(2);
-                
-                const responseData = simulateTransientResponse(data, paramValue);
-
-                 if (activeTransientChart) {
-                    activeTransientChart.data.labels = responseData.labels;
-                    activeTransientChart.data.datasets[0].data = responseData.data;
-                    activeTransientChart.update('none');
-                } else {
-                    const ctx = document.getElementById('transientResponseChart')?.getContext('2d');
-                    if(ctx) activeTransientChart = createChart(ctx, responseData, 'Respon Open Loop (Output)');
+            function calculateResponseStats(response, time, setpoint) {
+                if (isNaN(response[response.length - 1])) {
+                    return { mp: 0, tp: 0, tr: 0, ts: T_SIM_MAX, yss: NaN, ess: NaN };
                 }
-                updateTransientExplanation(data.transientDef.type, paramValue);
-            }
-            transientSlider.addEventListener('input', updateTransientSystem);
-            updateTransientSystem();
-        }
-    }
-    
-    function createChart(ctx, chartData, label) {
-        return new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: chartData.labels,
-                datasets: [{
-                    label: label,
-                    data: chartData.data,
-                    borderColor: 'rgb(59, 130, 246)',
-                    backgroundColor: 'rgba(59, 130, 246, 0.5)',
-                    borderWidth: 2,
-                    pointRadius: 0,
-                    tension: 0.1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: { display: true, text: 'Amplitudo Output', color: '#c9d1d9' },
-                        ticks: { color: '#8b949e' },
-                        grid: { color: '#30363d' }
-                    },
-                    x: {
-                        title: { display: true, text: 'Waktu (detik)', color: '#c9d1d9' },
-                        ticks: { color: '#8b949e' },
-                        grid: { color: '#30363d' }
+
+                const y_final = response[response.length - 1];
+                let y_max = y_final > 0 ? y_final : 0;
+                let t_peak = 0, t_tr_10 = -1, t_tr_90 = -1, t_ts = T_SIM_MAX;
+                
+                const ts_band_upper = y_final * 1.02;
+                const ts_band_lower = y_final * 0.98;
+                
+                for (let i = response.length - 1; i >= 0; i--) {
+                    if (response[i] > ts_band_upper || response[i] < ts_band_lower) {
+                        t_ts = (i + 1 < response.length) ? time[i+1] : T_SIM_MAX;
+                        break;
                     }
-                },
-                plugins: { legend: { labels: { color: '#c9d1d9' } } },
-                animation: { duration: 0 }
-            }
-        });
-    }
-
-    function simulatePidResponse(systemData, Kp, Ki, Kd) {
-        const labels = [], data = [];
-        const dt = 0.05, duration = 15;
-        let y = 0, dy = 0, ddy = 0;
-        let integral_error = 0, prev_error = 0;
-        const setpoint = 1;
-
-        if (systemData.order === 1) {
-            const { m, b } = systemData.params;
-            const K_plant = 1/b, tau = m/b;
-            for (let t = 0; t <= duration; t += dt) {
-                labels.push(t.toFixed(2));
-                const error = setpoint - y;
-                integral_error += error * dt;
-                const derivative_error = (error - prev_error) / dt;
-                const u = Kp * error + Ki * integral_error + Kd * derivative_error;
-                const dydt = (K_plant * u - y) / tau;
-                y += dydt * dt;
-                data.push(y);
-                prev_error = error;
-            }
-        } else if (systemData.order === 2) {
-             let m, b, k;
-             if (systemData.title.includes("Massa-Pegas-Peredam") || systemData.title.includes("Pneumatic Actuator") || systemData.title.includes("Bellows") || systemData.title.includes("Nozzle-Flapper")) {
-                 m = systemData.params.M || systemData.params.m || systemData.params.M_eq;
-                 b = systemData.params.b; k = systemData.params.k;
-             } else if (systemData.title.includes("RLC")) {
-                 m = systemData.params.L * systemData.params.C;
-                 b = systemData.params.R * systemData.params.C; k = 1;
-             } else if (systemData.title.includes("Motor DC")){
-                 const {J, b: b_motor, K, R} = systemData.params;
-                 m = J; b = b_motor + K*K/R; k=0;
-             } else { m=1; b=1; k=10; }
-             
-             if (systemData.title.includes("Inverted Pendulum")) k = -5; // Unstable plant
-            
-            for (let t = 0; t <= duration; t += dt) {
-                labels.push(t.toFixed(2));
-                const error = setpoint - y;
-                integral_error += error * dt;
-                const derivative_error = (error - prev_error) / dt;
-                const u = Kp * error + Ki * integral_error + Kd * derivative_error;
-                ddy = (u - b * dy - k * y) / m;
-                dy += ddy * dt;
-                y += dy * dt;
-                data.push(y);
-                prev_error = error;
-            }
-        }
-        return { labels, data };
-    }
-
-    function simulateTransientResponse(systemData, paramValue) {
-        const labels = [], data = [];
-        const dt = 0.05, duration = 15;
-
-        if (systemData.transientDef.type === 'tau') { // Order 1
-            const K = 1;
-            const tau = paramValue;
-            for (let t = 0; t <= duration; t += dt) {
-                labels.push(t.toFixed(2));
-                data.push(K * (1 - Math.exp(-t / tau)));
-            }
-        } else if (systemData.transientDef.type === 'zeta') { // Order 2
-            const zeta = paramValue;
-            const wn = 2; // Assume a natural frequency for visualization
-            for (let t = 0; t <= duration; t += dt) {
-                labels.push(t.toFixed(2));
-                let y_t = 0;
-                if (zeta < 1) { // Underdamped
-                    const wd = wn * Math.sqrt(1 - zeta*zeta);
-                    const phi = Math.acos(zeta);
-                    y_t = 1 - (Math.exp(-zeta*wn*t) / Math.sqrt(1 - zeta*zeta)) * Math.sin(wd*t + phi);
-                } else if (zeta === 1) { // Critically damped
-                    y_t = 1 - (1 + wn*t) * Math.exp(-wn*t);
-                } else { // Overdamped
-                    const s1 = -zeta*wn + wn*Math.sqrt(zeta*zeta - 1);
-                    const s2 = -zeta*wn - wn*Math.sqrt(zeta*zeta - 1);
-                    y_t = 1 - (s2*Math.exp(s1*t) - s1*Math.exp(s2*t)) / (s2 - s1);
+                    if (i === 0) t_ts = time[0];
                 }
-                data.push(y_t);
+                
+                response.forEach((y, i) => {
+                    if (y > y_max) { y_max = y; t_peak = time[i]; }
+                    if (t_tr_10 === -1 && y >= y_final * 0.1) t_tr_10 = time[i];
+                    if (t_tr_90 === -1 && y >= y_final * 0.9) t_tr_90 = time[i];
+                });
+                
+                const mp = (y_max > y_final && Math.abs(y_final) > 1e-6) ? ((y_max - y_final) / y_final) * 100 : 0;
+                const tr = (t_tr_10 !== -1 && t_tr_90 !== -1) ? (t_tr_90 - t_tr_10) : 0;
+                const ess = setpoint - y_final;
+                
+                return { mp, tp: mp > 0 ? t_peak : 0, tr, ts: t_ts, yss: y_final, ess };
             }
-        }
-        return { labels, data };
-    }
 
-    function updateTransientExplanation(type, value) {
-        const el = document.getElementById('transient-explanation');
-        let html = '';
-        if (type === 'tau') {
-            html = `<p>Dengan konstanta waktu <strong>τ = ${value.toFixed(2)}</strong>, sistem membutuhkan sekitar <strong>${(4*value).toFixed(2)} detik</strong> untuk mencapai kondisi mapan (settling time). Semakin besar τ, respon semakin lambat.</p>`;
-        } else if (type === 'zeta') {
-            let desc;
-            if (value < 1) desc = "bersifat <strong>underdamped</strong>, menunjukkan adanya osilasi dan overshoot sebelum mencapai kondisi mapan. Semakin kecil nilai ζ, semakin besar overshoot dan osilasinya.";
-            else if (value === 1) desc = "bersifat <strong>critically damped</strong>, memberikan respon tercepat yang mungkin tanpa adanya overshoot sama sekali.";
-            else desc = "bersifat <strong>overdamped</strong>. Responnya lambat dan tidak berosilasi, membutuhkan waktu lebih lama untuk mencapai kondisi mapan dibandingkan critically damped.";
-            html = `<p>Dengan rasio redaman <strong>ζ = ${value.toFixed(2)}</strong>, sistem ${desc}</p>`;
-        }
-        el.innerHTML = html;
-    }
+            function findPolynomialRoots(coeffs) {
+                let firstNonZero = coeffs.findIndex(c => Math.abs(c) > 1e-9);
+                if (firstNonZero === -1) return [];
+                let p = coeffs.slice(firstNonZero);
+                const degree = p.length - 1;
 
-    function updatePidExplanation(kp, ki, kd, order) {
-        const el = document.getElementById('pid-explanation');
-        let html = `<p>`;
-        if (kp > 0) html += `<strong>Kp (${kp.toFixed(1)})</strong>: Memberikan aksi kendali proporsional terhadap error. Meningkatkan Kp akan <strong>mempercepat respon</strong>, namun terlalu tinggi dapat menyebabkan <strong>overshoot dan osilasi</strong> yang besar, bahkan ketidakstabilan. <br>`;
-        if (ki > 0) html += `<strong>Ki (${ki.toFixed(1)})</strong>: Mengakumulasi error dari waktu ke waktu. Tujuannya adalah untuk <strong>menghilangkan steady-state error</strong>, memastikan output mencapai setpoint dengan presisi. Namun, Ki yang terlalu besar dapat menyebabkan overshoot dan memperlambat respon. <br>`;
-        if (kd > 0) html += `<strong>Kd (${kd.toFixed(1)})</strong>: Memberikan aksi berdasarkan laju perubahan error (prediktif). Kd berfungsi sebagai peredam, <strong>mengurangi overshoot dan osilasi</strong> yang disebabkan oleh Kp dan Ki. Kd yang berlebihan dapat memperlambat respon dan memperkuat noise.`;
-        if (kp === 0 && ki === 0 && kd === 0) html += `Sistem berjalan tanpa kendali (open loop).`;
-        html += `</p>`;
-        el.innerHTML = html;
-    }
+                if (degree === 1) { return [{ re: -p[1] / p[0], im: 0 }]; }
+                if (degree === 2) {
+                    const [a, b, c] = p;
+                    const d = b * b - 4 * a * c;
+                    return d >= 0 ? [ { re: (-b + Math.sqrt(d)) / (2 * a), im: 0 }, { re: (-b - Math.sqrt(d)) / (2 * a), im: 0 } ] : [ { re: -b / (2 * a), im: Math.sqrt(-d) / (2 * a) }, { re: -b / (2 * a), im: -Math.sqrt(-d) / (2 * a) } ];
+                }
+                if (degree === 3) {
+                    let [a, b, c, d] = p;
+                    b /= a; c /= a; d /= a;
+                    const p_ = (3 * c - b * b) / 3;
+                    const q_ = (2 * Math.pow(b, 3) - 9 * b * c + 27 * d) / 27;
+                    const D = Math.pow(q_ / 2, 2) + Math.pow(p_ / 3, 3);
+                    const roots = [];
+                    if (D >= 0) {
+                        const u = Math.cbrt(-q_/2 + Math.sqrt(D)), v = Math.cbrt(-q_/2 - Math.sqrt(D));
+                        roots.push({ re: u + v - b/3, im: 0 }, { re: -0.5*(u+v) - b/3, im: 0.5*Math.sqrt(3)*(u-v) }, { re: -0.5*(u+v) - b/3, im: -0.5*Math.sqrt(3)*(u-v) });
+                    } else {
+                        const r = Math.sqrt(-(Math.pow(p_/3, 3))), phi = Math.atan2(Math.sqrt(-D), -q_/2), R = 2 * Math.cbrt(r);
+                        roots.push({ re: R * Math.cos(phi/3) - b/3, im: 0 }, { re: R * Math.cos((phi + 2*Math.PI)/3) - b/3, im: 0 }, { re: R * Math.cos((phi + 4*Math.PI)/3) - b/3, im: 0 });
+                    }
+                    return roots.map(r => ({ re: r.re, im: Math.abs(r.im) < 1e-9 ? 0 : r.im }));
+                }
+                return []; 
+            }
 
-</script>
+            function formatPolesHTML(poles) {
+                if (poles.length === 0) { return `<br><h3>Stabilitas & Pole Sistem</h3><p class="desc">Pole tidak dapat dihitung (sistem orde > 3).</p>`; }
+                let polesHTML = '<ul>';
+                let isStable = true;
+                poles.forEach(pole => {
+                    polesHTML += `<li>p = ${pole.re.toFixed(4)}`;
+                    if (Math.abs(pole.im) > 1e-9) polesHTML += ` ${pole.im > 0 ? '+' : '-'} j${Math.abs(pole.im).toFixed(4)}`;
+                    polesHTML += '</li>';
+                    if (pole.re > 1e-6) isStable = false;
+                });
+                polesHTML += '</ul>';
+                let stabilityDesc = isStable ? `<span class="good">STABIL</span>` : `<span class="bad">TIDAK STABIL</span>`;
+                return `<br><h3>Stabilitas & Pole Sistem</h3>${polesHTML}<p class="desc">Kesimpulan: Sistem ini <strong>${stabilityDesc}</strong>.</p>`;
+            }
+            
+            // ==========================================================
+            // [BARU] Bagian 5: Fungsi-Fungsi Interpretasi
+            // ==========================================================
+
+            function generateTransientInterpretation(stats, params) {
+                let html = "";
+
+                // Interpretasi Overshoot (Mp)
+                if (stats.mp > 40) {
+                    html += `<p><strong class="bad">Overshoot sangat tinggi (${stats.mp.toFixed(1)}%).</strong> Ini menunjukkan respons yang sangat agresif dan berisiko. Pada sistem nyata, ini bisa menyebabkan kerusakan mekanis (misal, lengan robot menabrak) atau ketidaknyamanan (misal, lift yang "terlontar"). Coba naikkan gain Derivatif (<code>Kd</code>) atau turunkan gain Proporsional (<code>Kp</code>).</p>`;
+                } else if (stats.mp > 15) {
+                    html += `<p><strong class="warn">Overshoot cukup tinggi (${stats.mp.toFixed(1)}%).</strong> Sistem merespons cepat, namun melampaui setpoint secara signifikan sebelum stabil. Ini mungkin dapat diterima untuk beberapa aplikasi, namun tidak untuk yang memerlukan presisi tinggi. Penambahan gain Derivatif (<code>Kd</code>) dapat membantu meredamnya.</p>`;
+                } else if (stats.mp > 0) {
+                     html += `<p><strong class="good">Overshoot terkendali (${stats.mp.toFixed(1)}%).</strong> Sistem menunjukkan respons yang cepat dengan sedikit ayunan. Ini adalah trade-off yang baik antara kecepatan dan stabilitas untuk banyak aplikasi.</p>`;
+                } else {
+                    html += `<p><strong class="good">Tidak ada overshoot.</strong> Sistem sangat teredam, memberikan respons yang mulus tanpa melampaui setpoint. Namun, perhatikan Waktu Tunak (Ts); bisa jadi responsnya terlalu lambat.</p>`;
+                }
+
+                // Interpretasi Waktu Tunak (Ts)
+                if (stats.ts >= T_SIM_MAX * 0.99) {
+                     html += `<p><strong class="bad">Sistem sangat lambat atau tidak pernah tunak</strong> dalam waktu simulasi. Respons ini mungkin terlalu lamban untuk aplikasi praktis. Untuk mempercepat, coba naikkan gain Proporsional (<code>Kp</code>) secara perlahan.</p>`;
+                } else if (stats.ts > 4) {
+                    html += `<p><strong class="warn">Waktu tunak (${stats.ts.toFixed(2)}s) tergolong lambat.</strong> Sistem membutuhkan waktu yang cukup lama untuk menghilangkan error dan mencapai kondisi stabil. Ini bisa menjadi masalah pada proses yang memerlukan kecepatan tinggi.</p>`;
+                } else {
+                    html += `<p><strong class="good">Waktu tunak (${stats.ts.toFixed(2)}s) tergolong cepat.</strong> Sistem mampu mencapai dan mempertahankan setpoint dalam waktu yang singkat, menunjukkan kinerja yang efisien dan responsif.</p>`;
+                }
+
+                // Interpretasi Error Steady-State (ess)
+                if (Math.abs(stats.ess) > 0.05) {
+                    html += `<p><strong class="bad">Error steady-state signifikan (${stats.ess.toFixed(3)}).</strong> Sistem tidak mampu mencapai setpoint secara presisi. Ini adalah ciri khas sistem Tipe 0 (seperti kendali P pada plant Tipe 0) yang tidak dapat melacak input step tanpa error. Solusinya adalah dengan menambahkan gain Integral (<code>Ki</code>), yang akan mengubahnya menjadi sistem Tipe 1 dan mengeliminasi error ini.</p>`;
+                } else if (Math.abs(stats.ess) > 1e-3) {
+                     html += `<p><strong class="warn">Terdapat sedikit error steady-state (${stats.ess.toFixed(3)}).</strong> Kemungkinan besar karena keterbatasan presisi numerik atau gain Integral (<code>Ki</code>) yang terlalu kecil untuk sepenuhnya menghilangkan error dalam waktu singkat.</p>`;
+                } else {
+                     html += `<p><strong class="good">Error steady-state dapat diabaikan (${stats.ess.toFixed(3)}).</strong> Sistem berhasil mencapai setpoint dengan presisi sangat tinggi, kemungkinan besar berkat adanya aksi kendali Integral (<code>Ki</code> > 0).</p>`;
+                }
+
+                return html;
+            }
+
+            function generateStabilityInterpretation(poles) {
+                 if (poles.length === 0) return `<p>Interpretasi tidak tersedia karena pole tidak dapat dihitung untuk sistem orde lebih tinggi dari 3.</p>`;
+
+                let isUnstable = poles.some(p => p.re > 1e-6);
+                if (isUnstable) {
+                    return `<p><strong class="bad">Sistem TIDAK STABIL.</strong> Adanya pole di sisi kanan bidang-s (memiliki bagian riil positif) menyebabkan respons sistem tumbuh secara eksponensial tanpa batas. Pada sistem fisik, ini akan berujung pada saturasi aktuator atau kerusakan fatal. Ini adalah kondisi yang harus dihindari dalam desain sistem kendali. Turunkan gain <code>Kp</code> secara drastis atau perkenalkan feedback yang lebih kuat.</p>`;
+                }
+
+                let hasComplex = poles.some(p => Math.abs(p.im) > 1e-6);
+                let hasRepeated = false;
+                if (poles.length > 1) {
+                    for(let i=0; i<poles.length; i++){
+                        for(let j=i+1; j<poles.length; j++){
+                           if(Math.abs(poles[i].re - poles[j].re) < 1e-4 && Math.abs(poles[i].im - poles[j].im) < 1e-4){
+                               hasRepeated = true;
+                               break;
+                           } 
+                        }
+                        if(hasRepeated) break;
+                    }
+                }
+
+                if (hasComplex) {
+                    return `<p><strong class="warn">Sistem Underdamped (Teredam Kurang).</strong> Adanya pasangan pole kompleks konjugat menyebabkan respons sistem berosilasi sebelum mencapai kestabilan.
+                        <ul>
+                            <li>Bagian Riil (<code>&sigma; = ${poles.find(p=>p.im > 0).re.toFixed(3)}</code>) menentukan seberapa cepat osilasi diredam. Semakin ke kiri (lebih negatif), semakin cepat redamannya.</li>
+                            <li>Bagian Imajiner (<code>&omega;d = ${poles.find(p=>p.im > 0).im.toFixed(3)}</code>) menentukan frekuensi osilasi. Semakin besar, semakin cepat osilasinya.</li>
+                        </ul>
+                        Ini adalah karakteristik umum pada sistem yang responsif. Contohnya adalah suspensi mobil sport yang sedikit memantul.</p>`;
+                } else if (hasRepeated) {
+                    return `<p><strong class="good">Sistem Critically Damped (Teredam Kritis).</strong> Adanya pole riil yang berulang (sama) menunjukkan bahwa sistem memberikan respons tercepat yang mungkin tanpa mengalami overshoot. Ini sering dianggap sebagai kondisi ideal dalam banyak aplikasi, seperti gerakan presisi pada sebuah plotter atau robot bedah.</p>`;
+                } else {
+                     return `<p><strong class="good">Sistem Overdamped (Teredam Lebih).</strong> Semua pole sistem bersifat riil dan berbeda. Hal ini menghasilkan respons yang lambat dan mulus, tanpa osilasi sama sekali. Meskipun sangat stabil, sistem mungkin terlalu lamban untuk beberapa aplikasi. Contohnya adalah pintu hidrolik yang menutup perlahan tanpa membanting.</p>`;
+                }
+            }
+
+        });
+    </script>
 </body>
 </html>
