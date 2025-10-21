@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TM UNIMAL: Simulator Sistem Kendali Motor Listrik</title>
 
+    <!-- Pustaka eksternal -->
     <script src="https://cdn.plot.ly/plotly-2.29.1.min.js"></script>
     <script>
         // Konfigurasi MathJax untuk merender persamaan LaTeX
@@ -284,68 +285,6 @@
         }
         
         .hidden { display: none; }
-
-        /* =========================================== */
-        /* ==            ATURAN RESPONSIVE          == */
-        /* =========================================== */
-        @media screen and (max-width: 1024px) {
-            body {
-                padding: 12px;
-            }
-
-            .main-container {
-                /* Ubah grid menjadi 1 kolom untuk menumpuk panel secara vertikal */
-                grid-template-columns: 1fr;
-                min-height: unset; /* Hapus tinggi minimum */
-                margin: 10px auto;
-                gap: 0;
-            }
-
-            .controls-panel {
-                /* Hapus border kanan dan ganti dengan border bawah */
-                border-right: none;
-                border-bottom: 1px solid var(--color-border);
-                padding: 16px;
-            }
-            
-            .simulation-panel {
-                padding: 16px;
-            }
-
-            h1 {
-                font-size: 1.8em;
-            }
-            
-            h2 {
-                font-size: 1.5em;
-            }
-
-            /* Kurangi tinggi plot agar pas di layar mobile */
-            #plot-container {
-                height: 450px;
-            }
-        }
-        
-        @media screen and (max-width: 480px) {
-            body {
-                padding: 8px;
-            }
-
-            .main-container {
-                border-radius: 0;
-                border: none;
-                margin: 0;
-            }
-
-            .controls-panel, .simulation-panel {
-                padding: 12px;
-            }
-
-            /* Kurangi padding pada grup kontrol agar lebih hemat tempat */
-            .control-group {
-                padding: 12px 8px;
-            }
-        }
     </style>
 </head>
 <body>
@@ -484,6 +423,7 @@
                 </div>
             </div>
 
+            <!-- Panel Interpretasi -->
             <details open class="interpretation-box">
                 <summary style="color: var(--color-warning);">Analisis Lanjutan & Interpretasi</summary>
                 <div id="interpretation-content">
