@@ -57,6 +57,31 @@
         
         h1 { text-align: center; }
 
+        /* === CSS untuk Header Logo (Tambahan) === */
+        .header-logo-container {
+            display: flex;
+            align-items: center; /* Vertikal tengah */
+            gap: 16px; /* Jarak antara logo dan teks */
+            background-color: var(--color-bg); /* Sedikit beda dari panel */
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+            margin-bottom: 20px;
+        }
+        .header-logo {
+            width: 80px; /* Ukuran logo, bisa disesuaikan */
+            height: auto;
+            flex-shrink: 0; /* Agar logo tidak 'gepeng' */
+        }
+        .header-text {
+            font-family: var(--font-main);
+            font-weight: bold;
+            font-size: 1.15em; /* Ukuran font judul */
+            color: var(--color-primary);
+            line-height: 1.3;
+        }
+        /* ========================================= */
+
         /* Layout Utama Grid */
         .main-container {
             display: grid;
@@ -69,14 +94,18 @@
             border-radius: 12px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
             border: 1px solid var(--color-border);
-            overflow: hidden;
+            /* overflow: hidden; */
         }
 
         .controls-panel {
             padding: 24px;
             border-right: 1px solid var(--color-border);
+            border-radius: 10px;
             background-color: var(--color-bg-panel);
-            overflow-y: auto;
+            /* overflow-y: auto; */
+            position: sticky;
+            top: 20px; /* Jarak dari atas viewport saat "menempel" */
+            align-self: start; /* Penting agar 'sticky' berfungsi di dalam Grid */
         }
 
         .simulation-panel {
@@ -286,6 +315,14 @@
         }
         
         .hidden { display: none; }
+
+        /* === CSS untuk Animasi (Tambahan) === */
+        #motor-animation-canvas {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            border: 1px solid var(--color-border);
+        }
+        /* ==================================== */
     </style>
 </head>
 <body>
@@ -293,7 +330,14 @@
     <div class="main-container">
         
         <div class="controls-panel">
-            <h1>Panel Simulator</h1>
+            <div class="header-logo-container">
+            <img src="logo.png" alt="Logo UNIMAL" class="header-logo">
+            <div class="header-text">
+            <div>SIMULATOR</div>
+            <div>SISTEM KENDALI</div>
+            <div>MOTOR LISTRIK</div>
+            </div>
+        </div>
 
             <details open>
                 <summary>1. Sistem Plant (Motor)</summary>
@@ -408,6 +452,16 @@
                 </ul>
             </div>
 
+            <details open class="interpretation-box" style="border-color: var(--color-secondary);">
+            <summary style="color: var(--color-secondary);">Visualisasi Animasi Motor</summary>
+            <div style="text-align: center; padding: 10px;">
+                <canvas id="motor-animation-canvas" width="400" height="250"></canvas>
+                <div id="animation-status" style="color: var(--color-text-dim); font-style: italic; margin-top: 10px;">
+                    Silakan ubah parameter untuk memulai simulasi...
+                </div>
+            </div>
+            </details>
+            
             <h2>Respon Sistem (Step Input)</h2>
             <div id="plot-container"></div>
 
@@ -476,6 +530,30 @@
             // Referensi elemen interpretasi
             const transientInterpretationDiv = document.getElementById('transient-interpretation');
             const stabilityInterpretationDiv = document.getElementById('stability-interpretation');
+
+            const computedStyles = getComputedStyle(document.documentElement);
+            const colorText = computedStyles.getPropertyValue('--color-text').trim();
+            const colorPrimary = computedStyles.getPropertyValue('--color-primary').trim();
+            const colorSecondary = computedStyles.getPropertyValue('--color-secondary').trim();
+            const colorDanger = computedStyles.getPropertyValue('--color-danger').trim();
+            const fontMain = computedStyles.getPropertyValue('--font-main').trim();
+            const fontMono = computedStyles.getPropertyValue('--font-mono').trim();
+            const colorBorder = computedStyles.getPropertyValue('--color-border').trim();
+            const colorTextDim = computedStyles.getPropertyValue('--color-text-dim').trim();
+            const colorBgPanel = computedStyles.getPropertyValue('--color-bg-panel').trim();
+
+            // Referensi & State untuk Animasi
+            const motorCanvas = document.getElementById('motor-animation-canvas');
+            const motorCtx = motorCanvas.getContext('2d');
+            const animationStatus = document.getElementById('animation-status');
+
+            let currentAnimationId = null; // Untuk membatalkan animasi yg sedang berjalan
+            let animationData = { response: [], time: [] };
+            let animationPlantType = '1';
+
+            // Variabel untuk playback animasi
+            let animStartTime = 0;
+            const animPlaybackDuration = 3000; // Durasi playback animasi (3 detik)
 
             // Konstanta Simulasi
             const T_SIM_MAX = 10.0;
@@ -557,13 +635,19 @@
             // ==========================================================
 
             const allControls = document.querySelectorAll('input, select');
-            allControls.forEach(control => control.addEventListener('input', updateSimulator));
-
-            const computedStyles = getComputedStyle(document.documentElement);
-            const colorText = computedStyles.getPropertyValue('--color-text').trim();
-            const colorPrimary = computedStyles.getPropertyValue('--color-primary').trim();
-            const colorSecondary = computedStyles.getPropertyValue('--color-secondary').trim();
-            const colorDanger = computedStyles.getPropertyValue('--color-danger').trim();
+            allControls.forEach(control => {
+                if (control.type === 'range') {
+                    // Untuk SLIDER (RANGE):
+                    // 1. 'input' (saat diseret): Update semua KECUALI animasi
+                    control.addEventListener('input', () => updateSimulator(false));
+                    // 2. 'change' (saat dilepas): Update semua TERMASUK animasi
+                    control.addEventListener('change', () => updateSimulator(true));
+                } else {
+                    // Untuk CHECKBOX / DROPDOWN:
+                    // 'input' (saat di-klik): Update semua TERMASUK animasi
+                    control.addEventListener('input', () => updateSimulator(true));
+                }
+            });
 
             const plotlyLayout = {
                 title: 'Respon Sistem terhadap Unit Step Input',
@@ -583,7 +667,7 @@
             // Fungsi Update Utama
             // ==========================================================
 
-            function updateSimulator() {
+            function updateSimulator(runAnimation = true) {
                 const params = getParameters();
                 updateUIState(params);
                 const tfs = calculateTransferFunctions(params);
@@ -591,6 +675,10 @@
                 const simulationData = runSimulation(tfs.closedLoop);
                 drawPlot(simulationData, params);
                 updateAnalysis(tfs.closedLoop, simulationData, params);
+                // Panggil fungsi animasi (Tambahan)
+                if (runAnimation) {
+                    runMotorAnimation(simulationData, params.plantType);
+                }
             }
             
             // ==========================================================
@@ -924,10 +1012,18 @@
                 }
 
                 if (hasComplex) {
+                    // --- PERBAIKAN ---
+                    // Kita cari pole-nya dulu, baru kita akses propertinya
+                    // untuk menghindari error 'undefined.re'
+                    const complexPole = poles.find(p => p.im > 0);
+                    const sigma = complexPole ? complexPole.re.toFixed(3) : 'N/A';
+                    const omega_d = complexPole ? complexPole.im.toFixed(3) : 'N/A';
+                    // --- AKHIR PERBAIKAN ---
+
                     return `<p><strong class="warn">Sistem Underdamped (Teredam Kurang).</strong> Adanya pasangan pole kompleks konjugat menyebabkan respons sistem berosilasi sebelum mencapai kestabilan.
                         <ul>
-                            <li>Bagian Riil (<code>&sigma; = ${poles.find(p=>p.im > 0).re.toFixed(3)}</code>) menentukan seberapa cepat osilasi diredam. Semakin ke kiri (lebih negatif), semakin cepat redamannya.</li>
-                            <li>Bagian Imajiner (<code>&omega;d = ${poles.find(p=>p.im > 0).im.toFixed(3)}</code>) menentukan frekuensi osilasi. Semakin besar, semakin cepat osilasinya.</li>
+                            <li>Bagian Riil (<code>&sigma; = ${sigma}</code>) menentukan seberapa cepat osilasi diredam. Semakin ke kiri (lebih negatif), semakin cepat redamannya.</li>
+                            <li>Bagian Imajiner (<code>&omega;d = ${omega_d}</code>) menentukan frekuensi osilasi. Semakin besar, semakin cepat osilasinya.</li>
                         </ul>
                         Ini adalah karakteristik umum pada sistem yang responsif. Contohnya adalah suspensi mobil sport yang sedikit memantul.</p>`;
                 } else if (hasRepeated) {
@@ -935,6 +1031,219 @@
                 } else {
                      return `<p><strong class="good">Sistem Overdamped (Teredam Lebih).</strong> Semua pole sistem bersifat riil dan berbeda. Hal ini menghasilkan respons yang lambat dan mulus, tanpa osilasi sama sekali. Meskipun sangat stabil, sistem mungkin terlalu lamban untuk beberapa aplikasi. Contohnya adalah pintu hidrolik yang menutup perlahan tanpa membanting.</p>`;
                 }
+            }
+        
+        // ==========================================================
+        // Bagian 6: Logika Animasi Motor (Tambahan)
+        // ==========================================================
+            
+            /**
+             * Memulai loop animasi playback berdasarkan data simulasi.
+             */
+            function runMotorAnimation(simData, plantType) {
+                // Batalkan frame animasi sebelumnya jika ada
+                if (currentAnimationId) {
+                    cancelAnimationFrame(currentAnimationId);
+                }
+                
+                // Simpan data untuk diakses oleh loop animasi
+                animationData = simData;
+                animationPlantType = plantType;
+                
+                // Cek jika simulasi gagal (NaN)
+                if (isNaN(animationData.response[animationData.response.length - 1])) {
+                     animationStatus.textContent = "Animasi tidak tersedia (Sistem Tidak Stabil)";
+                     drawAnimation(0); // Gambar frame dasar
+                     currentAnimationId = null;
+                     return;
+                }
+
+                // Reset state animasi
+                animStartTime = 0; // Akan diset pada frame pertama
+                animationStatus.textContent = "Memutar ulang respon sistem...";
+
+                // Mulai loop animasi
+                currentAnimationId = requestAnimationFrame(animationLoop);
+            }
+
+            /**
+             * Loop utama animasi (dijalankan oleh requestAnimationFrame)
+             */
+            function animationLoop(timestamp) {
+                if (animStartTime === 0) {
+                    animStartTime = timestamp; // Inisialisasi waktu mulai
+                }
+                
+                const elapsedTime = timestamp - animStartTime;
+                const progress = Math.min(elapsedTime / animPlaybackDuration, 1.0);
+                
+                // Tentukan frame data simulasi mana yang akan ditampilkan
+                // berdasarkan kemajuan playback (progress 0.0 -> 1.0)
+                let animFrameIndex = Math.floor(progress * (animationData.response.length - 1));
+                
+                if (animFrameIndex >= animationData.response.length) {
+                    animFrameIndex = animationData.response.length - 1;
+                }
+
+                const currentValue = animationData.response[animFrameIndex];
+                drawAnimation(currentValue);
+
+                if (progress < 1.0) {
+                    // Lanjutkan loop
+                    currentAnimationId = requestAnimationFrame(animationLoop);
+                } else {
+                    // Selesai
+                    animationStatus.textContent = `Animasi selesai. Nilai akhir: ${currentValue.toFixed(3)}`;
+                    currentAnimationId = null;
+                }
+            }
+
+            /**
+             * Fungsi penggambaran utama, memilih jenis visualisasi.
+             */
+            function drawAnimation(value) {
+                // Bersihkan canvas
+                motorCtx.fillStyle = '#1a1a1a';
+                motorCtx.fillRect(0, 0, motorCanvas.width, motorCanvas.height);
+                
+                // Tentukan jenis animasi
+                if (animationPlantType === '2') {
+                    // Tipe 2 = Kendali Posisi (Disk berputar)
+                    drawPositionDisk(motorCtx, value);
+                } else {
+                    // Tipe 1 & 3 = Kendali Kecepatan (Gauge/Tachometer)
+                    drawSpeedGauge(motorCtx, value);
+                }
+            }
+
+            /**
+             * Menggambar visualisasi Gauge untuk Kendali Kecepatan.
+             */
+            function drawSpeedGauge(ctx, speed) {
+                const centerX = motorCanvas.width / 2;
+                const centerY = motorCanvas.height / 2 + 30;
+                const radius = 80;
+                
+                // Normalisasi speed. Asumsikan setpoint 1.0 adalah 100%.
+                // Kita beri ruang hingga 1.5x (untuk overshoot)
+                const maxDisplaySpeed = 1.5; 
+                const angle = (speed / maxDisplaySpeed) * Math.PI; // 0 s/d 180 derajat
+                
+                // Batasi sudut
+                const finalAngle = Math.max(0, Math.min(Math.PI, angle));
+
+                // Gambar busur gauge
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, Math.PI, 0); // Setengah lingkaran
+                ctx.strokeStyle = colorBorder; // var(--color-border)
+                ctx.lineWidth = 5;
+                ctx.stroke();
+
+                // Gambar tanda
+                ctx.font = "14px " + fontMono;
+                ctx.fillStyle = colorTextDim; // var(--color-text-dim)
+                ctx.textAlign = "center";
+                ctx.fillText("0", centerX - radius - 15, centerY + 5);
+                ctx.fillText("0.5", centerX - radius + 25, centerY - radius + 10);
+                ctx.fillText("1.0", centerX + radius - 25, centerY - radius + 10);
+                ctx.fillText("1.5+", centerX + radius + 20, centerY + 5);
+
+                // Gambar jarum
+                const needleLength = radius - 10;
+                // Sudut di canvas: 0 = kanan, PI = kiri. Kita butuh 0 di kiri.
+                const needleAngle = Math.PI - finalAngle; 
+                const needleX = centerX + needleLength * Math.cos(needleAngle);
+                const needleY = centerY - needleLength * Math.sin(needleAngle);
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(needleX, needleY);
+                ctx.strokeStyle = colorDanger; // var(--color-danger)
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                // Gambar pivot
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+                ctx.fillStyle = colorDanger;
+                ctx.fill();
+
+                // Tampilkan nilai
+                ctx.font = "bold 24px " + fontMono;
+                ctx.fillStyle = colorSecondary; // var(--color-secondary)
+                ctx.fillText(speed.toFixed(3), centerX, centerY + 50);
+                ctx.font = "16px " + fontMain;
+                ctx.fillStyle = colorPrimary; // var(--color-primary)
+                ctx.fillText("Kecepatan (rad/s)", centerX, centerY + 80);
+            }
+
+            /**
+             * Menggambar visualisasi Disk untuk Kendali Posisi.
+             */
+            function drawPositionDisk(ctx, position) {
+                const centerX = motorCanvas.width / 2;
+                const centerY = motorCanvas.height / 2 + 30;
+                const radius = 80;
+                
+                // Posisi 1.0 = 1.0 radian
+                const angle = position;
+
+                // Gambar disk (motor shaft)
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = colorBgPanel; // var(--color-bg-panel)
+                ctx.fill();
+                ctx.strokeStyle = colorBorder; // var(--color-border)
+                ctx.lineWidth = 4;
+                ctx.stroke();
+                
+                // Sudut 0 di canvas adalah jam 3. Kita offset 90 derajat agar 0 di atas.
+                const angleOffset = -Math.PI / 2;
+
+                // Gambar garis referensi (Setpoint = 1 rad)
+                const setpointAngle = 1.0 + angleOffset; // 1.0 rad
+                const setpointX = centerX + (radius + 15) * Math.cos(setpointAngle);
+                const setpointY = centerY + (radius + 15) * Math.sin(setpointAngle);
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(setpointX, setpointY);
+                ctx.strokeStyle = colorSecondary; // var(--color-secondary)
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.fillStyle = colorSecondary;
+                ctx.font = "14px " + fontMono;
+                ctx.textAlign = "center";
+                ctx.fillText("1.0", setpointX + 10*Math.cos(setpointAngle), setpointY + 10*Math.sin(setpointAngle) + 5);
+
+
+                // Gambar garis posisi saat ini
+                const currentAngle = angle + angleOffset;
+                const lineX = centerX + radius * Math.cos(currentAngle);
+                const lineY = centerY + radius * Math.sin(currentAngle);
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.lineTo(lineX, lineY);
+                ctx.strokeStyle = colorDanger; // var(--color-danger)
+                ctx.lineWidth = 4;
+                ctx.stroke();
+
+                // Gambar pivot
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = colorDanger;
+                ctx.fill();
+
+                // Tampilkan nilai
+                ctx.font = "bold 24px " + fontMono;
+                ctx.fillStyle = colorSecondary;
+                ctx.textAlign = "center";
+                ctx.fillText(angle.toFixed(3), centerX, centerY + radius + 30);
+                ctx.font = "16px " + fontMain;
+                ctx.fillStyle = colorPrimary;
+                ctx.fillText("Posisi (rad)", centerX, centerY + radius + 60);
             }
 
         });
