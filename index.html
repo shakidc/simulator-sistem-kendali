@@ -461,8 +461,96 @@
                     <li><strong>Output (Y(s)):</strong> Respon aktual (posisi/kecepatan).</li>
                 </ul>
             </div>
-
-            <details open class="interpretation-box" style="border-color: var(--color-secondary);">
+            <details class="theory-box" style="border-color: var(--color-primary); background-color: #1c2a38;">
+                <summary style="font-size: 1.2em; color: var(--color-primary);">
+                    Fungsi Alih dan Dasar Teori Motor DC Umum (Orde 2)
+                </summary>
+                <div style="padding-top: 15px;">
+                    <details class="theory-box" style="border-color: var(--color-primary); background-color: #1c2a38;">
+                    <summary style="font-size: 1.2em; color: var(--color-primary);">
+                    1. Analisis Sisi Listrik (Hukum Tegangan Kirchhoff)
+                    </summary>
+                    <p>Kita modelkan rangkaian jangkar sebagai resistor ($R_a$), induktor ($L_a$), dan sumber GGL Balik (<i>Back-EMF</i>, $V_b$).<br>Sesuai KVL, total tegangan $V_a$ adalah:</p>
+                    $$ V_a(t) = R_a i_a(t) + L_a \frac{di_a(t)}{dt} + V_b(t) $$
+                    <p>GGL Balik $V_b(t)$ sebanding dengan kecepatan putar $\omega(t)$:</p>
+                    $$ V_b(t) = K_b \omega(t) $$
+                    <p>Transformasi Laplace dari kedua persamaan (asumsi kondisi awal nol):</p>
+                    $$ V_a(s) = (R_a + L_a s) I_a(s) + K_b \omega(s) $$
+                    <p>Dari sini, kita dapatkan persamaan untuk arus $I_a(s)$:</p>
+                    $$ I_a(s) = \frac{V_a(s) - K_b \omega(s)}{L_a s + R_a} \quad \text{(A)} $$
+                    </details>
+                    <details class="theory-box" style="border-color: var(--color-primary); background-color: #1c2a38;">
+                    <summary style="font-size: 1.2em; color: var(--color-primary);">
+                    2. Analisis Sisi Mekanik (Hukum Newton II Rotasi)
+                    </summary>
+                    <p>Torsi yang dibangkitkan motor ($T_m$) digunakan untuk mengatasi inersia rotor ($J$) dan gesekan viskos ($B$).</p>
+                    $$ \Sigma T = J \frac{d\omega(t)}{dt} \implies T_m(t) - T_{gesek}(t) = J \frac{d\omega(t)}{dt} $$
+                    <p>Dengan torsi motor $T_m(t) = K_t i_a(t)$ dan gesekan $T_{gesek}(t) = B \omega(t)$, kita dapatkan:</p>
+                    $$ K_t i_a(t) - B \omega(t) = J \frac{d\omega(t)}{dt} $$
+                    <p>Transformasi Laplace dari persamaan ini:</p>
+                    $$ K_t I_a(s) - B \omega(s) = J s \omega(s) $$
+                    <p>Pindahkan semua $\omega(s)$ ke satu sisi untuk mendapatkan persamaan:</p>
+                    $$ K_t I_a(s) = (J s + B) \omega(s) \quad \text{(B)} $$
+                    </details>
+                    <details class="theory-box" style="border-color: var(--color-primary); background-color: #1c2a38;">
+                    <summary style="font-size: 1.2em; color: var(--color-primary);">
+                    3. Menggabungkan Sisi Listrik & Mekanik
+                    </summary>
+                    <p>Kita substitusikan Persamaan (A) ke dalam Persamaan (B) untuk mengeliminasi $I_a(s)$:</p>
+                    $$ K_t \left( \frac{V_a(s) - K_b \omega(s)}{L_a s + R_a} \right) = (J s + B) \omega(s) $$
+                    <p>Sekarang, kita selesaikan persamaan ini untuk mendapatkan $\frac{\omega(s)}{V_a(s)}$:</p>
+                    $$ K_t V_a(s) - K_t K_b \omega(s) = (J s + B)(L_a s + R_a) \omega(s) $$
+                    $$ K_t V_a(s) = \left[ (J s + B)(L_a s + R_a) + K_t K_b \right] \omega(s) $$
+                    <p>Fungsi alih akhir (Orde 2) adalah:</p>
+                    $$ G(s) = \frac{\omega(s)}{V_a(s)} = \frac{K_t}{(J s + B)(L_a s + R_a) + K_t K_b} $$
+                    <p>Jika kita ekspansi penyebutnya, kita dapatkan bentuk polinomial orde 2:</p>
+                    $$ G(s) = \frac{K_t}{L_a J s^2 + (R_a J + L_a B) s + (R_a B + K_t K_b)} $$
+                    
+                    <hr style="border-color: var(--color-border); margin: 20px 0;">
+                    </details>
+                    <details class="theory-box" style="border-color: var(--color-primary); background-color: #1c2a38;">
+                    <summary style="font-size: 1.2em; color: var(--color-primary);">
+                    4. Penjelasan Parameter & Pengaruhnya
+                    </summary>
+                    <ul style="padding-left: 20px;">
+                        <li><strong>Parameter Listrik:</strong>
+                            <ul style="padding-left: 20px;">
+                                <li>$R_a$ (Resistansi Jangkar): Menyebabkan kerugian daya (panas). <br><strong>Pengaruh:</strong> $R_a$ yang tinggi meningkatkan redaman listrik (membantu stabil) tetapi menurunkan efisiensi dan torsi.</li>
+                                <li>$L_a$ (Induktansi Jangkar): Menahan perubahan arus yang cepat. <br><strong>Pengaruh:</strong> $L_a$ yang besar memperlambat respons listrik (menambah <strong>lag</strong>). Ini adalah parameter kunci yang membuat sistem menjadi Orde 2.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Parameter Mekanik:</strong>
+                            <ul style="padding-left: 20px;">
+                                <li>$J$ (Inersia Rotor): Keengganan rotor untuk berakselerasi. <br><strong>Pengaruh:</strong> $J$ yang besar membuat motor lambat merespons (konstanta waktu mekanik besar).</li>
+                                <li>$B$ (Gesekan Viskos): Redaman mekanik (gesekan bearing). <br><strong>Pengaruh:</strong> $B$ yang besar menambah redaman sistem (membantu motor berhenti) tetapi butuh lebih banyak torsi.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Konstanta Elektromekanik:</strong>
+                            <ul style="padding-left: 20px;">
+                                <li>$K_t$ (Konstanta Torsi): Mengubah arus ($I_a$) menjadi torsi ($T_m$). <br><strong>Pengaruh:</strong> $K_t$ yang tinggi berarti motor "kuat" (torsi besar per Ampere).</li>
+                                <li>$K_b$ (Konstanta GGL Balik): Mengubah kecepatan ($\omega$) menjadi tegangan GGL Balik ($V_b$). <br><strong>Pengaruh:</strong> $K_b$ yang tinggi secara alami membatasi kecepatan maksimum motor.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    </details>
+                    <details class="theory-box" style="border-color: var(--color-primary); background-color: #1c2a38;">
+                    <summary style="font-size: 1.2em; color: var(--color-primary);">
+                    5. Simplifikasi Menjadi Orde 1
+                    </summary>
+                    <p>Dalam banyak motor, induktansi $L_a$ sangat kecil sehingga bisa diabaikan ($L_a \approx 0$).<br>Jika $L_a = 0$, fungsi alih menjadi:</p>
+                    $$ G(s) = \frac{K_t}{R_a (J s + B) + K_t K_b} = \frac{K_t}{R_a J s + (R_a B + K_t K_b)} $$
+                    <p>Ini adalah bentuk standar sistem orde 1:</p> 
+                        $$ G(s) = \frac{K}{\tau s + 1}$$
+                    <p>Di mana:
+                    <ul style="padding-left: 20px;">
+                        <li>Gain $K = \frac{K_t}{R_a B + K_t K_b}$</li>
+                        <li>Konstanta Waktu $\tau = \frac{R_a J}{R_a B + K_t K_b}$</li>
+                    </ul>
+                    </p>
+                    </details>
+                </div>
+            </details>
+            <details class="interpretation-box" style="border-color: var(--color-secondary);">
             <summary style="color: var(--color-secondary);">Visualisasi Animasi Motor</summary>
             <div style="text-align: center; padding: 10px;">
                 <canvas id="motor-animation-canvas" width="400" height="250"></canvas>
@@ -489,7 +577,7 @@
             </div>
 
             <!-- Panel Interpretasi -->
-            <details open class="interpretation-box">
+            <details class="interpretation-box">
                 <summary style="color: var(--color-warning);">Analisis Lanjutan & Interpretasi</summary>
                 <div id="interpretation-content">
                     <h3>Interpretasi Respon Transien</h3>
