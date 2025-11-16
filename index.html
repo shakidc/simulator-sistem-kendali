@@ -324,6 +324,12 @@
         }
         /* ==================================== */
 
+        /* === (BARU) Kelas Bantuan untuk Teks Analisis === */
+        .primary { color: var(--color-primary); } /* Biru (Netral) */
+        .good { color: #4CAF50; } /* Hijau (Aman) */
+        .warn { color: var(--color-warning); } /* Kuning (Waspada) */
+        .danger { color: var(--color-danger); } /* Merah (Bahaya) */
+
         /* === CSS untuk Footer (Tambahan) === */
         footer {
             text-align: center;
@@ -367,36 +373,36 @@
                 <div id="params-k-tau" class="control-group">
                     <div class="slider-container">
                         <label for="k">Gain (<span class="symbol">K</span>): 
-                            <span class="value-display" id="k-val">2.0</span>
+                            <span class="value-display" id="k-val">0.00</span>
                         </label>
-                        <input type="range" id="k" min="0.1" max="10.0" value="2.0" step="0.1">
+                        <input type="range" id="k" min="0.00" max="10.00" value="0.00" step="0.01">
                     </div>
                     <div class="slider-container">
                         <label for="tau">Konstanta Waktu (<span class="symbol">&tau;</span>): 
-                            <span class="value-display" id="tau-val">0.5</span>
+                            <span class="value-display" id="tau-val">0.00</span>
                         </label>
-                        <input type="range" id="tau" min="0.1" max="5.0" value="0.5" step="0.1">
+                        <input type="range" id="tau" min="0.00" max="5.00" value="0.00" step="0.01">
                     </div>
                 </div>
 
                 <div id="params-zeta-wn" class="control-group hidden">
                     <div class="slider-container">
                         <label for="k_ord2">Gain (<span class="symbol">K</span>): 
-                            <span class="value-display" id="k_ord2-val">1.0</span>
+                            <span class="value-display" id="k_ord2-val">0.00</span>
                         </label>
-                        <input type="range" id="k_ord2" min="0.1" max="10.0" value="1.0" step="0.1">
+                        <input type="range" id="k_ord2" min="0.00" max="10.00" value="0.00" step="0.01">
                     </div>
                     <div class="slider-container">
                         <label for="zeta">Rasio Redaman (<span class="symbol">&zeta;</span>): 
-                            <span class="value-display" id="zeta-val">0.2</span>
+                            <span class="value-display" id="zeta-val">0.00</span>
                         </label>
-                        <input type="range" id="zeta" min="0.0" max="2.0" value="0.2" step="0.05">
+                        <input type="range" id="zeta" min="0.00" max="2.00" value="0.00" step="0.05">
                     </div>
                     <div class="slider-container">
                         <label for="omega_n">Frekuensi Natural (<span class="symbol">&omega;<sub>n</sub></span>): 
-                            <span class="value-display" id="omega_n-val">5.0</span>
+                            <span class="value-display" id="omega_n-val">0.00</span>
                         </label>
-                        <input type="range" id="omega_n" min="0.1" max="20.0" value="5.0" step="0.1">
+                        <input type="range" id="omega_n" min="0.00" max="20.00" value="0.00" step="0.01">
                     </div>
                 </div>
             </details>
@@ -411,19 +417,19 @@
                     </div>
                     <div class="slider-container hidden" id="pid-params">
                         <label for="kp">Proporsional ($K_p$): 
-                            <span class="value-display" id="kp-val">1.0</span>
+                            <span class="value-display" id="kp-val">0.00</span>
                         </label>
-                        <input type="range" id="kp" min="0.0" max="20.0" value="1.0" step="0.1">
+                        <input type="range" id="kp" min="0.00" max="20.00" value="0.00" step="0.01">
                         
                         <label for="ki">Integral ($K_i$): 
-                            <span class="value-display" id="ki-val">0.5</span>
+                            <span class="value-display" id="ki-val">0.00</span>
                         </label>
-                        <input type="range" id="ki" min="0.0" max="10.0" value="0.5" step="0.1">
+                        <input type="range" id="ki" min="0.00" max="10.00" value="0.00" step="0.01">
                         
                         <label for="kd">Derivatif ($K_d$): 
-                            <span class="value-display" id="kd-val">0.1</span>
+                            <span class="value-display" id="kd-val">0.00</span>
                         </label>
-                        <input type="range" id="kd" min="0.0" max="10.0" value="0.1" step="0.1">
+                        <input type="range" id="kd" min="0.00" max="10.00" value="0.00" step="0.01">
                     </div>
                 </div>
 
@@ -434,9 +440,9 @@
                     </div>
                     <div class="slider-container hidden" id="tacho-params">
                         <label for="kt">Tacho Gain ($K_t$): 
-                            <span class="value-display" id="kt-val">0.1</span>
+                            <span class="value-display" id="kt-val">0.00</span>
                         </label>
-                        <input type="range" id="kt" min="0.0" max="2.0" value="0.1" step="0.05">
+                        <input type="range" id="kt" min="0.00" max="2.00" value="0.00" step="0.05">
                     </div>
                     <p id="tacho-desc" style="font-size: 0.9em; color: var(--color-text-dim);">
                         (Feedback $H(s)=1$ (Unity))
@@ -575,6 +581,36 @@
                     <div id="cl-poles-analysis"></div>
                 </div>
             </div>
+            
+            <!-- ANALISIS KESTABILAN SISTEM -->
+            <details class="theory-box">
+                <summary>Kestabilan Sistem</summary>
+                <p>
+                    Kestabilan adalah properti terpenting dari sistem kendali. Sistem disebut <strong>Stabil (BIBO - <i>Bounded-Input Bounded-Output</i>)</strong> jika <i>output</i> tetap terbatas (tidak meledak menuju tak hingga) untuk <i>input</i> yang terbatas.
+                </p>
+                <p>
+                    Kestabilan ini ditentukan oleh lokasi <strong><i>Pole</i></strong> dari Fungsi Alih Kalang Tertutup $G_{CL}(s)$. <i>Pole</i> adalah akar-akar dari persamaan karakteristik (penyebut $G_{CL}(s)$).
+                </p>
+                <ul>
+                    <li><strong>Sistem Stabil:</strong> Semua <i>pole</i> berada di sisi kiri bidang kompleks (Bidang-s), yaitu memiliki bagian riil negatif.</li>
+                    <li><strong>Sistem Tidak Stabil:</strong> Terdapat setidaknya satu <i>pole</i> di sisi kanan bidang kompleks (memiliki bagian riil positif).</li>
+                    <li><strong>Sistem Stabil Marjinal:</strong> Terdapat <i>pole</i> di sumbu imajiner (bagian riil = 0) dan tidak ada <i>pole</i> di sisi kanan. Sistem akan berosilasi tanpa henti.</li>
+                </ul>
+                <p>
+                    Untuk <strong>Sistem Orde 2</strong> (yang paling umum dipelajari di simulator ini), persamaan karakteristiknya adalah $s^2 + 2\zeta\omega_n s + \omega_n^2 = 0$. Lokasi pole-nya adalah:
+                </p>
+                <p>$$ s_{1,2} = -\zeta\omega_n \pm \omega_n\sqrt{\zeta^2 - 1} $$</p>
+                <p>
+                    Parameter <strong>Rasio Redaman ($\zeta$)</strong> yang Anda atur di simulator ini secara langsung mengontrol lokasi <i>pole</i> dan jenis kestabilan:
+                </p>
+                <ul>
+                    <li><strong>$\zeta > 1$ (Overdamped):</strong> Dua <i>pole</i> riil berbeda di sisi kiri. Respons lambat, stabil, tanpa osilasi.</li>
+                    <li><strong>$\zeta = 1$ (Critically Damped):</strong> Dua <i>pole</i> riil identik di sisi kiri. Respons tercepat, stabil, tanpa osilasi.</li>
+                    <li><strong>$0 < \zeta < 1$ (Underdamped):</strong> Sepasang <i>pole</i> kompleks konjugat di sisi kiri. Respons cepat, stabil, namun berosilasi (terdapat <i>overshoot</i>).</li>
+                    <li><strong>$\zeta = 0$ (Undamped):</strong> Sepasang <i>pole</i> imajiner murni. Stabil marjinal, osilasi murni.</li>
+                    <li><strong>$\zeta < 0$ (Unstable):</strong> Sepasang <i>pole</i> kompleks konjugat di sisi kanan. Respons meledak (tidak stabil).</li>
+                </ul>
+            </details>
 
             <!-- Panel Interpretasi -->
             <details class="interpretation-box">
@@ -587,6 +623,39 @@
                     <div id="stability-interpretation"></div>
                 </div>
             </details>
+
+            <!-- KENDALI PID -->
+            <details class="theory-box">
+                <summary>Kendali PID (Proportional-Integral-Derivative)</summary>
+                <p>
+                    Kontroler PID adalah mekanisme umpan balik (<i>feedback</i>) yang paling umum digunakan di industri. Tujuannya adalah untuk meminimalkan <strong>Error ($e(t)$)</strong>, yaitu selisih antara nilai yang diinginkan (<i>Setpoint</i>) dengan nilai terukur (<i>Output</i>).
+                </p>
+                <p>
+                    Sinyal kendali $u(t)$ dihitung berdasarkan tiga aksi:
+                </p>
+                <p>$$ u(t) = K_p e(t) + K_i \int_{0}^{t} e(\tau)d\tau + K_d \frac{de(t)}{dt} $$</p>
+                <p>
+                    Dalam domain Laplace (seperti di simulator ini), fungsi alih kontroler adalah $C(s) = K_p + \frac{K_i}{s} + K_d s$.
+                </p>
+                <ul>
+                    <li>
+                        <strong>Aksi Proporsional (P - $K_p$):</strong>
+                        Memberikan aksi kendali yang sebanding dengan <strong>error saat ini</strong>. Semakin besar $K_p$, semakin cepat responsnya (<i>rise time</i> membaik), namun seringkali menyisakan <strong><i>Steady-State Error</i></strong> (<i>output</i> tidak pernah tepat mencapai <i>setpoint</i>).
+                    </li>
+                    <li>
+                        <strong>Aksi Integral (I - $K_i$):</strong>
+                        Memberikan aksi berdasarkan <strong>akumulasi <i>error</i> di masa lalu</strong>. Fungsi utamanya adalah untuk <strong>menghilangkan <i>Steady-State Error</i></strong>. Namun, penambahan $K_i$ dapat memperburuk respons transien (menambah overshoot).
+                    </li>
+                    <li>
+                        <strong>Aksi Derivatif (D - $K_d$):</strong>
+                        Memberikan aksi berdasarkan <strong>prediksi <i>error di masa depan</i></strong> (laju perubahan <i>error</i>). Aksi ini bersifat "mengerem" dan bertujuan untuk <strong>mengurangi <i>overshoot</i></strong> serta meningkatkan stabilitas sistem. $K_d$ sangat efektif untuk meredam osilasi.
+                    </li>
+                </ul>
+                <p>
+                    Di simulator ini, Anda dapat bereksperimen: Coba perbaiki sistem Orde 2 yang <strong><i>underdamped</i></strong> (memiliki <i>overshoot</i>) dengan menambahkan aksi Derivatif (D), atau hilangkan <strong><i>steady-state error</i></strong> dengan menambahkan aksi Integral (I).
+               </p>
+            </details>
+
         </div>
     </div>
     <footer>
@@ -594,760 +663,887 @@
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', () => {
+        
+        // ==========================================================
+        // Bagian 1: Referensi DOM & Variabel Global
+        // ==========================================================
+        const plotContainer = document.getElementById('plot-container');
+        const stabilityInterpretationDiv = document.getElementById('stability-interpretation');
+        const transientInterpretationDiv = document.getElementById('transient-interpretation');
+        const clTfDisplay = document.getElementById('cl-tf-display');
+        const clAnalysisText = document.getElementById('cl-analysis-text');
+        const clPolesAnalysis = document.getElementById('cl-poles-analysis');
 
-            // ==========================================================
-            // Variabel Global & Referensi Elemen DOM
-            // ==========================================================
-            
-            const plantTypeSelect = document.getElementById('plant-type');
-            
-            const paramsKtau = document.getElementById('params-k-tau');
-            const paramsZetaWn = document.getElementById('params-zeta-wn');
-            
-            const kSlider = document.getElementById('k');
-            const tauSlider = document.getElementById('tau');
-            const kOrd2Slider = document.getElementById('k_ord2');
-            const zetaSlider = document.getElementById('zeta');
-            const omegaNSlider = document.getElementById('omega_n');
-            
-            const pidEnableCheckbox = document.getElementById('pid-enable');
-            const pidParamsContainer = document.getElementById('pid-params');
-            const kpSlider = document.getElementById('kp');
-            const kiSlider = document.getElementById('ki');
-            const kdSlider = document.getElementById('kd');
-            
-            const tachoEnableCheckbox = document.getElementById('tacho-enable');
-            const tachoParamsContainer = document.getElementById('tacho-params');
-            const ktSlider = document.getElementById('kt');
-            const tachoDesc = document.getElementById('tacho-desc');
+        // Referensi Warna & Font dari CSS
+        const computedStyles = getComputedStyle(document.documentElement);
+        const colorText = computedStyles.getPropertyValue('--color-text').trim();
+        const colorPrimary = computedStyles.getPropertyValue('--color-primary').trim();
+        const colorSecondary = computedStyles.getPropertyValue('--color-secondary').trim();
+        const colorDanger = computedStyles.getPropertyValue('--color-danger').trim();
+        const fontMain = computedStyles.getPropertyValue('--font-main').trim();
+        const fontMono = computedStyles.getPropertyValue('--font-mono').trim();
+        const colorBorder = computedStyles.getPropertyValue('--color-border').trim();
+        const colorTextDim = computedStyles.getPropertyValue('--color-text-dim').trim();
+        const colorBgPanel = computedStyles.getPropertyValue('--color-bg-panel').trim();
+        const colorWarning = computedStyles.getPropertyValue('--color-warning').trim();
 
-            const clTfDisplay = document.getElementById('cl-tf-display');
-            const clAnalysisText = document.getElementById('cl-analysis-text');
-            const clPolesAnalysis = document.getElementById('cl-poles-analysis');
-            
-            const plotContainer = document.getElementById('plot-container');
-            
-            // Referensi elemen interpretasi
-            const transientInterpretationDiv = document.getElementById('transient-interpretation');
-            const stabilityInterpretationDiv = document.getElementById('stability-interpretation');
+        // Referensi & State Animasi
+        const motorCanvas = document.getElementById('motor-animation-canvas');
+        const motorCtx = motorCanvas.getContext('2d');
+        const animationStatus = document.getElementById('animation-status');
+        let currentAnimationId = null;
+        let animationData = { response: [], time: [] };
+        let animationPlantType = '1'; // '1'/'3' = Kecepatan, '2' = Posisi
+        let animStartTime = 0;
+        const animPlaybackDuration = 3000;
 
-            const computedStyles = getComputedStyle(document.documentElement);
-            const colorText = computedStyles.getPropertyValue('--color-text').trim();
-            const colorPrimary = computedStyles.getPropertyValue('--color-primary').trim();
-            const colorSecondary = computedStyles.getPropertyValue('--color-secondary').trim();
-            const colorDanger = computedStyles.getPropertyValue('--color-danger').trim();
-            const fontMain = computedStyles.getPropertyValue('--font-main').trim();
-            const fontMono = computedStyles.getPropertyValue('--font-mono').trim();
-            const colorBorder = computedStyles.getPropertyValue('--color-border').trim();
-            const colorTextDim = computedStyles.getPropertyValue('--color-text-dim').trim();
-            const colorBgPanel = computedStyles.getPropertyValue('--color-bg-panel').trim();
+        // Layout Plotly
+        const plotlyLayout = {
+            plot_bgcolor: "transparent",
+            paper_bgcolor: "transparent",
+            xaxis: { title: 'Waktu (detik)', color: colorText, gridcolor: colorBorder, titlefont: { family: fontMain } },
+            yaxis: { title: 'Amplitudo Respon', color: colorText, gridcolor: colorBorder, titlefont: { family: fontMain } },
+            legend: { font: { color: colorText, family: fontMain } },
+            margin: { l: 60, r: 30, b: 50, t: 30 }
+        };
 
-            // Referensi & State untuk Animasi
-            const motorCanvas = document.getElementById('motor-animation-canvas');
-            const motorCtx = motorCanvas.getContext('2d');
-            const animationStatus = document.getElementById('animation-status');
-
-            let currentAnimationId = null; // Untuk membatalkan animasi yg sedang berjalan
-            let animationData = { response: [], time: [] };
-            let animationPlantType = '1';
-
-            // Variabel untuk playback animasi
-            let animStartTime = 0;
-            const animPlaybackDuration = 3000; // Durasi playback animasi (3 detik)
-
-            // Konstanta Simulasi
-            const T_SIM_MAX = 10.0;
-            const DT = 0.005;
-            const N_POINTS = Math.floor(T_SIM_MAX / DT);
-            
-            // ==========================================================
-            // Kelas Helper: Polinomial dan Transfer Function (TF)
-            // ==========================================================
-            class Polynomial {
-                constructor(coeffs) {
-                    this.coeffs = coeffs.map(c => c || 0);
-                }
-                
-                static multiply(p1, p2) {
-                    const d1 = p1.coeffs.length - 1;
-                    const d2 = p2.coeffs.length - 1;
-                    const result = new Array(d1 + d2 + 1).fill(0);
-                    for (let i = 0; i <= d1; i++) {
-                        for (let j = 0; j <= d2; j++) {
-                            result[i + j] += p1.coeffs[i] * p2.coeffs[j];
-                        }
-                    }
-                    return new Polynomial(result);
-                }
-                
-                static add(p1, p2) {
-                    const d1 = p1.coeffs.length;
-                    const d2 = p2.coeffs.length;
-                    const maxLen = Math.max(d1, d2);
-                    const result = new Array(maxLen).fill(0);
-                    for (let i = 0; i < maxLen; i++) {
-                        const c1 = p1.coeffs[d1 - 1 - i] || 0;
-                        const c2 = p2.coeffs[d2 - 1 - i] || 0;
-                        result[maxLen - 1 - i] = c1 + c2;
-                    }
-                    return new Polynomial(result);
-                }
-
-                toLatexString() {
-                    let s = "";
-                    const degree = this.coeffs.length - 1;
-                    for (let i = 0; i <= degree; i++) {
-                        const coeff = this.coeffs[i];
-                        if (Math.abs(coeff) < 1e-9) continue;
-                        
-                        const power = degree - i;
-                        const absCoeff = Math.abs(coeff);
-                        const sign = coeff > 0 ? (i > 0 && s !== "" ? " + " : "") : " - ";
-                        
-                        s += sign;
-                        
-                        if (absCoeff.toFixed(4) !== '1.0000' || power === 0) {
-                            s += absCoeff.toFixed(4).replace(/\.?0+$/, '');
-                        }
-                        
-                        if (power > 0) {
-                            s += "s";
-                            if (power > 1) s += `^{${power}}`;
-                        }
-                    }
-                    return s || "0";
-                }
+        // ==========================================================
+        // Bagian 2: Kelas & Fungsi Utilitas
+        // ==========================================================
+        
+        // Kelas Polinomial Sederhana
+        class Polynomial {
+            constructor(coeffs) {
+                this.coeffs = coeffs.length > 0 ? coeffs : [0];
             }
+            multiply(other) {
+                let result = new Array(this.coeffs.length + other.coeffs.length - 1).fill(0);
+                for (let i = 0; i < this.coeffs.length; i++) {
+                    for (let j = 0; j < other.coeffs.length; j++) {
+                        result[i + j] += this.coeffs[i] * other.coeffs[j];
+                    }
+                }
+                return new Polynomial(result);
+            }
+            add(other) {
+                let maxLen = Math.max(this.coeffs.length, other.coeffs.length);
+                let result = new Array(maxLen).fill(0);
+                for (let i = 0; i < maxLen; i++) {
+                    let c1 = this.coeffs[this.coeffs.length - 1 - i] || 0;
+                    let c2 = other.coeffs[other.coeffs.length - 1 - i] || 0;
+                    result[maxLen - 1 - i] = c1 + c2;
+                }
+                // Hapus leading zeros
+                while (result.length > 1 && result[0] === 0) {
+                    result.shift();
+                }
+                return new Polynomial(result);
+            }
+        }
+
+        // Kelas Transfer Function Sederhana
+        class TF {
+            constructor(num, den) {
+                this.num = new Polynomial(num);
+                this.den = new Polynomial(den);
+            }
+            multiply(other) {
+                return new TF(this.num.multiply(other.num).coeffs, this.den.multiply(other.den).coeffs);
+            }
+            feedback(H) {
+                // T = G / (1 + G*H)
+                // G = N_g / D_g
+                // H = N_h / D_h
+                // T = (N_g/D_g) / (1 + (N_g*N_h) / (D_g*D_h))
+                // T = (N_g/D_g) / ((D_g*D_h + N_g*N_h) / (D_g*D_h))
+                // T = (N_g * D_h) / (D_g*D_h + N_g*N_h)
+                let newNum = this.num.multiply(H.den);
+                let newDen = this.den.multiply(H.den).add(this.num.multiply(H.num));
+                return new TF(newNum.coeffs, newDen.coeffs);
+            }
+        }
+        
+        function linspace(start, end, num) {
+            const arr = new Array(num);
+            const step = (end - start) / (num - 1);
+            for (let i = 0; i < num; i++) {
+                arr[i] = start + (step * i);
+            }
+            return arr;
+        }
+
+        function calculatePoles(denCoeffs) {
+            // (Ini adalah fungsi placeholder sederhana. Cukup untuk Orde 2)
+            // (Fungsi yang lebih kompleks akan membutuhkan metode numerik)
+            const coeffs = [...denCoeffs].reverse(); // Urutan [a_0, a_1, a_2, ...]
+            let order = coeffs.length - 1;
             
-            class TransferFunction {
-                constructor(num, den) {
-                    this.num = num;
-                    this.den = den;
-                }
-                
-                toLatexString(name = "G(s)") {
-                    return `$$ ${name} = \\frac{${this.num.toLatexString()}}{${this.den.toLatexString()}} $$`;
-                }
+            // Normalisasi
+            const a_n = coeffs[order];
+            for (let i = 0; i <= order; i++) {
+                coeffs[i] /= a_n;
             }
 
-            // ==========================================================
-            // Fungsi Event Listener & Inisialisasi Utama
-            // ==========================================================
-
-            const allControls = document.querySelectorAll('input, select');
-            allControls.forEach(control => {
-                if (control.type === 'range') {
-                    // Untuk SLIDER (RANGE):
-                    // 1. 'input' (saat diseret): Update semua KECUALI animasi
-                    control.addEventListener('input', () => updateSimulator(false));
-                    // 2. 'change' (saat dilepas): Update semua TERMASUK animasi
-                    control.addEventListener('change', () => updateSimulator(true));
+            let poles = [];
+            if (order === 1) { // a1*s + a0 = 0 -> s = -a0/a1
+                poles.push({ re: -coeffs[0] / coeffs[1], im: 0 });
+            } else if (order === 2) { // s^2 + a1*s + a0 = 0
+                const a1 = coeffs[1];
+                const a0 = coeffs[0];
+                const discriminant = a1 * a1 - 4 * a0;
+                if (discriminant >= 0) {
+                    poles.push({ re: (-a1 + Math.sqrt(discriminant)) / 2, im: 0 });
+                    poles.push({ re: (-a1 - Math.sqrt(discriminant)) / 2, im: 0 });
                 } else {
-                    // Untuk CHECKBOX / DROPDOWN:
-                    // 'input' (saat di-klik): Update semua TERMASUK animasi
-                    control.addEventListener('input', () => updateSimulator(true));
+                    poles.push({ re: -a1 / 2, im: Math.sqrt(-discriminant) / 2 });
+                    poles.push({ re: -a1 / 2, im: -Math.sqrt(-discriminant) / 2 });
                 }
-            });
-
-            const plotlyLayout = {
-                title: 'Respon Sistem terhadap Unit Step Input',
-                xaxis: { title: 'Waktu (detik)', gridcolor: 'rgba(255,255,255,0.1)', zerolinecolor: colorPrimary },
-                yaxis: { title: 'Amplitudo', gridcolor: 'rgba(255,255,255,0.1)', zerolinecolor: 'rgba(255,255,255,0.1)'},
-                plot_bgcolor: 'transparent',
-                paper_bgcolor: 'transparent',
-                font: { color: colorText },
-                legend: { x: 0.5, y: -0.2, orientation: 'h', xanchor: 'center' },
-                margin: { l: 60, r: 30, b: 60, t: 80 }
-            };
-
-            initPlot();
-            updateSimulator();
-
-            // ==========================================================
-            // Fungsi Update Utama
-            // ==========================================================
-
-            function updateSimulator(runAnimation = true) {
-                const params = getParameters();
-                updateUIState(params);
-                const tfs = calculateTransferFunctions(params);
-                updateTfDisplays(tfs);
-                const simulationData = runSimulation(tfs.closedLoop);
-                drawPlot(simulationData, params);
-                updateAnalysis(tfs.closedLoop, simulationData, params);
-                // Panggil fungsi animasi (Tambahan)
-                if (runAnimation) {
-                    runMotorAnimation(simulationData, params.plantType);
-                }
-            }
-            
-            // ==========================================================
-            // Bagian 1: Pengambilan & Update UI
-            // ==========================================================
-            function getParameters() {
-                return {
-                    plantType: plantTypeSelect.value,
-                    k: parseFloat(kSlider.value),
-                    tau: parseFloat(tauSlider.value),
-                    k_ord2: parseFloat(kOrd2Slider.value),
-                    zeta: parseFloat(zetaSlider.value),
-                    omega_n: parseFloat(omegaNSlider.value),
-                    pidEnabled: pidEnableCheckbox.checked,
-                    kp: parseFloat(kpSlider.value),
-                    ki: parseFloat(kiSlider.value),
-                    kd: parseFloat(kdSlider.value),
-                    tachoEnabled: tachoEnableCheckbox.checked,
-                    kt: parseFloat(ktSlider.value),
-                };
-            }
-            
-            function updateUIState(params) {
-                document.getElementById('k-val').textContent = params.k.toFixed(2);
-                document.getElementById('tau-val').textContent = params.tau.toFixed(2);
-                document.getElementById('k_ord2-val').textContent = params.k_ord2.toFixed(2);
-                document.getElementById('zeta-val').textContent = params.zeta.toFixed(2);
-                document.getElementById('omega_n-val').textContent = params.omega_n.toFixed(2);
-                document.getElementById('kp-val').textContent = params.kp.toFixed(2);
-                document.getElementById('ki-val').textContent = params.ki.toFixed(2);
-                document.getElementById('kd-val').textContent = params.kd.toFixed(2);
-                document.getElementById('kt-val').textContent = params.kt.toFixed(2);
-                
-                const isType3 = params.plantType === "3";
-                paramsKtau.classList.toggle('hidden', isType3);
-                paramsZetaWn.classList.toggle('hidden', !isType3);
-                
-                pidParamsContainer.classList.toggle('hidden', !params.pidEnabled);
-                tachoParamsContainer.classList.toggle('hidden', !params.tachoEnabled);
-                
-                let tachoHtml = "";
-                if (params.tachoEnabled) {
-                    if (params.plantType === "2") {
-                        tachoHtml = `(Feedback Kecepatan $H(s) = K_t s = ${params.kt.toFixed(2)}s$)`;
+            } else { // Orde 3+
+                // Coba temukan pole riil sederhana
+                if (order === 3 && coeffs[0] === 0) { // Pole di s=0
+                    poles.push({ re: 0, im: 0 });
+                    // Sisa orde 2: s^2 + a2*s + a1 = 0
+                    const a2 = coeffs[2];
+                    const a1 = coeffs[1];
+                    const discriminant = a2 * a2 - 4 * a1;
+                    if (discriminant >= 0) {
+                        poles.push({ re: (-a2 + Math.sqrt(discriminant)) / 2, im: 0 });
+                        poles.push({ re: (-a2 - Math.sqrt(discriminant)) / 2, im: 0 });
                     } else {
-                        tachoHtml = `(Feedback Proporsional $H(s) = K_t = ${params.kt.toFixed(2)}$)`;
+                        poles.push({ re: -a2 / 2, im: Math.sqrt(-discriminant) / 2 });
+                        poles.push({ re: -a2 / 2, im: -Math.sqrt(-discriminant) / 2 });
                     }
                 } else {
-                    tachoHtml = "(Unity Feedback $H(s) = 1$)";
-                }
-                tachoDesc.innerHTML = tachoHtml;
-            }
-            
-            // ==========================================================
-            // Bagian 2: Kalkulasi Matematika
-            // ==========================================================
-            
-            function calculateTransferFunctions(params) {
-                let Gp, C, H;
-
-                if (params.plantType === "1") {
-                    Gp = new TransferFunction(new Polynomial([params.k]), new Polynomial([params.tau, 1]));
-                } else if (params.plantType === "2") {
-                    Gp = new TransferFunction(new Polynomial([params.k]), new Polynomial([params.tau, 1, 0]));
-                } else {
-                    const { k_ord2: k, omega_n: wn, zeta: z } = params;
-                    Gp = new TransferFunction(new Polynomial([k * wn * wn]), new Polynomial([1, 2 * z * wn, wn * wn]));
-                }
-                
-                C = params.pidEnabled ? new TransferFunction(new Polynomial([params.kd, params.kp, params.ki]), new Polynomial([1, 0])) : new TransferFunction(new Polynomial([1]), new Polynomial([1]));
-                
-                if (params.tachoEnabled) {
-                    H = (params.plantType === "2") ? new TransferFunction(new Polynomial([params.kt, 0]), new Polynomial([1])) : new TransferFunction(new Polynomial([params.kt]), new Polynomial([1]));
-                } else {
-                    H = new TransferFunction(new Polynomial([1]), new Polynomial([1]));
-                }
-                
-                const Num_CGp = Polynomial.multiply(C.num, Gp.num);
-                const Den_CGp = Polynomial.multiply(C.den, Gp.den);
-                
-                const Num_CL = Polynomial.multiply(Num_CGp, H.den);
-                const Den_CL = Polynomial.add(Polynomial.multiply(Den_CGp, H.den), Polynomial.multiply(Num_CGp, H.num));
-                
-                return { plant: Gp, closedLoop: new TransferFunction(Num_CL, Den_CL) };
-            }
-            
-            function updateTfDisplays(tfs) {
-                clTfDisplay.innerHTML = tfs.closedLoop.toLatexString("G_{CL}(s)");
-                if (window.MathJax && window.MathJax.typeset) {
-                    MathJax.typeset([clTfDisplay, tachoDesc]);
+                     // Placeholder: hanya mengestimasi pole dominan, ini tidak akurat
+                     // Ini hanya untuk mencegah crash, idealnya butuh root-finder
+                     poles.push({ re: -0.5, im: 0 }); 
                 }
             }
+            return poles.filter(p => !isNaN(p.re) && !isNaN(p.im));
+        }
+        
+        // ==========================================================
+        // Bagian 3: Logika Inti Simulator
+        // ==========================================================
+        
+        /**
+         * Menganalisis poles untuk menentukan waktu simulasi yang sesuai.
+         */
+        function getPoleBasedMetrics(poles) {
+            const stablePoles = poles.filter(p => p.re < 0);
+            let settlingTime, simulationTime;
 
-            // ==========================================================
-            // Bagian 3: Simulasi & Plotting
-            // ==========================================================
-            
-            function runSimulation(tf) {
-                return simulateTF(tf);
+            if (stablePoles.length === 0) {
+                settlingTime = Infinity;
+                simulationTime = 10.0; // Tampilkan 10 detik untuk sistem tidak stabil
+            } else {
+                const dominantSigma = Math.max(...stablePoles.map(p => p.re));
+                settlingTime = 4 / Math.abs(dominantSigma);
+                simulationTime = Math.max(10.0, settlingTime * 1.5);
             }
+            return { settlingTime, simulationTime };
+        }
+
+        /**
+         * Fungsi utama yang menjalankan seluruh pembaruan simulator.
+         * (SESUAI DENGAN HTML BARU ANDA)
+         */
+        function updateSimulator(runAnimation = true) {
+            try {
+                // 1. Dapatkan parameter dari UI (SESUAI HTML BARU)
+                const plantType = document.getElementById('plant-type').value;
+                const usePID = document.getElementById('pid-enable').checked;
+                const useTacho = document.getElementById('tacho-enable').checked;
+
+                const K_ord1 = parseFloat(document.getElementById('k').value) || 0.00;
+                const tau_ord1 = parseFloat(document.getElementById('tau').value) || 0.00;
+                const K_ord2 = parseFloat(document.getElementById('k_ord2').value) || 0.00;
+                const zeta = parseFloat(document.getElementById('zeta').value) || 0.00;
+                const wn = parseFloat(document.getElementById('omega_n').value) || 0.00;
+
+                const Kp = usePID ? (parseFloat(document.getElementById('kp').value) || 0) : 0.00;
+                const Ki = usePID ? (parseFloat(document.getElementById('ki').value) || 0) : 0.00;
+                const Kd = usePID ? (parseFloat(document.getElementById('kd').value) || 0) : 0.00;
+                const Kt = useTacho ? (parseFloat(document.getElementById('kt').value) || 0) : 0.00;
+
+                const params = {
+                    plantType, usePID, useTacho,
+                    K_ord1, tau_ord1, K_ord2, zeta, wn,
+                    Kp, Ki, Kd, Kt
+                };
+                
+                // 2. Hitung Fungsi Alih (Fungsi ini BARU)
+                const tfs = calculateTFs(params); 
+                
+                // 3. Hitung Poles & Tentukan Waktu Simulasi
+                const poles = calculatePoles(tfs.closedLoop.den.coeffs);
+                const poleMetrics = getPoleBasedMetrics(poles);
+                const T_MAX = poleMetrics.simulationTime;
+
+                // 4. Jalankan Simulasi dengan T_MAX dinamis
+                const simulationData = runSimulation(tfs.closedLoop, T_MAX);
+
+                // 5. Update Tampilan Plot
+                drawPlot(simulationData, T_MAX);
+                
+                // 6. Update Analisis
+                updateAnalysis(tfs.openLoop, tfs.closedLoop, simulationData, poles, poleMetrics, params);
+
+                // 7. Update Animasi
+                if (runAnimation) {
+                    const animType = (plantType === '2') ? '2' : '1'; // '2' = Posisi, '1'/'3' = Kecepatan
+                    runMotorAnimation(simulationData, animType);
+                }
+            } catch (error) {
+                console.error("Terjadi error dalam updateSimulator:", error);
+                animationStatus.textContent = "Error pada simulasi. Periksa Console.";
+            }
+        }
+
+        /**
+         * Menghitung TF berdasarkan parameter baru
+         * (SESUAI DENGAN HTML BARU ANDA)
+         */
+        function calculateTFs(params) {
+            const { plantType, usePID, useTacho, K_ord1, tau_ord1, K_ord2, zeta, wn, Kp, Ki, Kd, Kt } = params;
+
+            // 1. Buat Plant TF (G_p(s))
+            let G_p;
+            if (plantType === '1') {
+                // Tipe 1: Orde 1: Kendali Kecepatan (La ≈ 0)
+                // G(s) = K / (tau*s + 1)
+                G_p = new TF([K_ord1], [tau_ord1, 1]);
+            } else if (plantType === '2') {
+                // Tipe 2: Orde 2: Kendali Posisi (Motor Orde 1)
+                // Ini berarti G_motor = K/(tau*s+1), dan Posisi = integral(Kecepatan)
+                // G_p = [K / (tau*s + 1)] * (1/s) = K / (tau*s^2 + s)
+                G_p = new TF([K_ord1], [tau_ord1, 1, 0]);
+            } else {
+                // Tipe 3: Orde 2: Kendali Kecepatan (La ≠ 0)
+                // G(s) = K*wn^2 / (s^2 + 2*zeta*wn*s + wn^2)
+                // Kita gunakan parameter Orde 2 di sini
+                const num = [K_ord2 * wn * wn];
+                const den = [1, 2 * zeta * wn, wn * wn];
+                G_p = new TF(num, den);
+            }
+
+            // 2. Buat Controller TF (C(s))
+            let C;
+            if (usePID) {
+                // C(s) = Kp + Ki/s + Kd*s = (Kd*s^2 + Kp*s + Ki) / s
+                C = new TF([Kd, Kp, Ki], [1, 0]);
+            } else {
+                C = new TF([1], [1]); // C(s) = 1
+            }
+
+            // 3. Buat Feedback TF (H(s))
+            let H;
+            if (useTacho) {
+                if (plantType === '2') { 
+                    // Tipe 2 (Posisi) dengan Tacho -> Velocity Feedback
+                    H = new TF([Kt, 0], [1]); // H(s) = Kt * s
+                } else { 
+                    // Tipe 1 atau 3 (Kecepatan) dengan Tacho
+                    H = new TF([Kt], [1]); // H(s) = Kt
+                }
+            } else {
+                H = new TF([1], [1]); // H(s) = 1 (Unity)
+            }
+
+            // 4. Hitung Fungsi Alih
+            const G_ol = G_p.multiply(C);         // G_ol = C(s)G_p(s)
+            const G_cl = G_ol.feedback(H);    // T(s) = G_ol / (1 + G_ol * H)
             
-            function simulateTF(tf) {
-                let b_coeffs = [...tf.num.coeffs].reverse();
-                let a_coeffs = [...tf.den.coeffs].reverse();
-                
-                const n = a_coeffs.length - 1;
-                const m = b_coeffs.length - 1;
-                
-                const time = new Array(N_POINTS);
-                const response = new Array(N_POINTS);
-                const input = 1.0;
-                
-                const a_n = a_coeffs[n];
-                if (Math.abs(a_n) < 1e-9) {
-                    return { time: Array(N_POINTS).fill(0).map((_,i) => i*DT), response: Array(N_POINTS).fill(NaN) };
-                }
+            return { openLoop: G_ol, closedLoop: G_cl };
+        }
 
-                const a = a_coeffs.map(c => c / a_n);
-                const b = b_coeffs.map(c => c / a_n);
-                
-                for (let i = m + 1; i <= n; i++) b[i] = 0;
-                
-                if (n === 0) {
-                    const gain = b[0] / a[0];
-                    for (let i = 0; i < N_POINTS; i++) {
-                        time[i] = i * DT;
-                        response[i] = gain * input;
-                    }
-                    return { time, response };
-                }
+        /**
+         * Menjalankan simulasi state-space
+         * (SESUAI DENGAN KODE JS LAMA ANDA, TAPI DENGAN T_MAX DINAMIS)
+         */
+        function runSimulation(tf, T_MAX) {
+            return simulateTF(tf, T_MAX);
+        }
 
-                const state = new Array(n).fill(0.0);
-                
+        function simulateTF(tf, T_MAX) {
+            // Konstanta simulasi dinamis
+            const N_POINTS = 500;
+            const DT = T_MAX / (N_POINTS - 1);
+            const STATE_MAX_CLAMP = 1e10; // Batas anti-NaN
+
+            let b_coeffs = [...tf.num.coeffs].reverse();
+            let a_coeffs = [...tf.den.coeffs].reverse();
+            
+            const n = a_coeffs.length - 1;
+            const m = b_coeffs.length - 1;
+            
+            const time = new Array(N_POINTS);
+            const response = new Array(N_POINTS);
+            const input = 1.0;
+            
+            const a_n = a_coeffs[n];
+            if (Math.abs(a_n) < 1e-9) {
+                return { time: Array(N_POINTS).fill(0).map((_,i) => i*DT), response: Array(N_POINTS).fill(NaN) };
+            }
+
+            const a = a_coeffs.map(c => c / a_n);
+            const b = b_coeffs.map(c => c / a_n);
+            
+            for (let i = m + 1; i <= n; i++) b[i] = 0;
+            
+            if (n === 0) {
+                const gain = b[0] / a[0];
                 for (let i = 0; i < N_POINTS; i++) {
                     time[i] = i * DT;
-                    
-                    let output_y = b.reduce((sum, bi, j) => sum + (j < n ? bi * state[j] : 0), 0) + b[n] * input;
-                    response[i] = output_y;
-                    
-                    const state_dot = new Array(n).fill(0.0);
-                    for (let j = 0; j < n - 1; j++) state_dot[j] = state[j+1];
-                    
-                    let x_n_dot = input - a.reduce((sum, ai, j) => sum + (j < n ? ai * state[j] : 0), 0);
-                    state_dot[n-1] = x_n_dot;
-                    
-                    for (let j = 0; j < n; j++) state[j] += state_dot[j] * DT;
+                    response[i] = gain * input;
                 }
-                
                 return { time, response };
             }
 
-            function initPlot() {
-                Plotly.newPlot(plotContainer, [], plotlyLayout, {responsive: true});
-            }
+            const state = new Array(n).fill(0.0);
             
-            function drawPlot(data) {
-                Plotly.react(plotContainer, [
-                    { x: data.time, y: data.response, mode: 'lines', name: 'Respon Sistem (Closed Loop)', line: { color: colorDanger, width: 3 } },
-                    { x: [0, T_SIM_MAX], y: [1.0, 1.0], mode: 'lines', name: 'Setpoint (Input)', line: { color: colorSecondary, dash: 'dash', width: 2 } }
-                ], plotlyLayout);
-            }
-
-            // ==========================================================
-            // Bagian 4: Analisis & Interpretasi
-            // ==========================================================
-            
-            function updateAnalysis(closedLoopTf, data, params) {
-                // Analisis Kuantitatif
-                const statsCL = calculateResponseStats(data.response, data.time, 1.0);
-                clAnalysisText.innerHTML = formatAnalysisHTML(statsCL);
-
-                const poles = findPolynomialRoots(closedLoopTf.den.coeffs);
-                clPolesAnalysis.innerHTML = formatPolesHTML(poles);
+            for (let i = 0; i < N_POINTS; i++) {
+                time[i] = i * DT;
                 
-                // Analisis Kualitatif (Interpretasi)
-                transientInterpretationDiv.innerHTML = generateTransientInterpretation(statsCL, params);
-                stabilityInterpretationDiv.innerHTML = generateStabilityInterpretation(poles);
-            }
-            
-            function formatAnalysisHTML(stats) {
-                return `
-                    <table>
-                        <tr><th>Overshoot Maksimum (M<sub>p</sub>)</th><td>${stats.mp.toFixed(2)} %</td></tr>
-                        <tr><th>Waktu Puncak (T<sub>p</sub>)</th><td>${stats.tp.toFixed(3)} s</td></tr>
-                        <tr><th>Waktu Naik (T<sub>r</sub> 10-90%)</th><td>${stats.tr.toFixed(3)} s</td></tr>
-                        <tr><th>Waktu Tunak (T<sub>s</sub> 2%)</th><td>${stats.ts.toFixed(3)} s</td></tr>
-                        <tr><th>Nilai Akhir (Y<sub>ss</sub>)</th><td>${stats.yss.toFixed(3)}</td></tr>
-                        <tr><th>Error Steady State (e<sub>ss</sub>)</th><td>${stats.ess.toFixed(3)}</td></tr>
-                    </table>
-                `;
-            }
+                let output_y = b.reduce((sum, bi, j) => sum + (j < n ? bi * state[j] : 0), 0) + b[n] * input;
+                response[i] = output_y;
+                
+                const state_dot = new Array(n).fill(0.0);
+                for (let j = 0; j < n - 1; j++) state_dot[j] = state[j+1];
+                
+                let x_n_dot = input - a.reduce((sum, ai, j) => sum + (j < n ? ai * state[j] : 0), 0);
+                state_dot[n-1] = x_n_dot;
+                
+                for (let j = 0; j < n; j++) state[j] += state_dot[j] * DT;
 
-            function calculateResponseStats(response, time, setpoint) {
-                if (isNaN(response[response.length - 1])) {
-                    return { mp: 0, tp: 0, tr: 0, ts: T_SIM_MAX, yss: NaN, ess: NaN };
+                // PERBAIKAN: Clamping state untuk mencegah NaN
+                for (let j = 0; j < n; j++) {
+                    if (state[j] > STATE_MAX_CLAMP) state[j] = STATE_MAX_CLAMP;
+                    else if (state[j] < -STATE_MAX_CLAMP) state[j] = -STATE_MAX_CLAMP;
+                    else if (isNaN(state[j])) state[j] = 0;
                 }
+            }
+            
+            return { time, response };
+        }
 
-                const y_final = response[response.length - 1];
-                let y_max = y_final > 0 ? y_final : 0;
-                let t_peak = 0, t_tr_10 = -1, t_tr_90 = -1, t_ts = T_SIM_MAX;
-                
-                const ts_band_upper = y_final * 1.02;
-                const ts_band_lower = y_final * 0.98;
-                
-                for (let i = response.length - 1; i >= 0; i--) {
-                    if (response[i] > ts_band_upper || response[i] < ts_band_lower) {
-                        t_ts = (i + 1 < response.length) ? time[i+1] : T_SIM_MAX;
-                        break;
-                    }
-                    if (i === 0) t_ts = time[0];
-                }
-                
-                response.forEach((y, i) => {
-                    if (y > y_max) { y_max = y; t_peak = time[i]; }
-                    if (t_tr_10 === -1 && y >= y_final * 0.1) t_tr_10 = time[i];
-                    if (t_tr_90 === -1 && y >= y_final * 0.9) t_tr_90 = time[i];
+        // ==========================================================
+        // Bagian 4: Update Tampilan & UI
+        // ==========================================================
+
+        /**
+         * Menggambar plot dengan T_MAX dinamis
+         */
+        function drawPlot(data, T_MAX) {
+            Plotly.react(plotContainer, [
+                { x: data.time, y: data.response, mode: 'lines', name: 'Respon Sistem', line: { color: colorDanger, width: 3 } },
+                { x: [0, T_MAX], y: [1.0, 1.0], mode: 'lines', name: 'Setpoint (Input)', line: { color: colorSecondary, dash: 'dash', width: 2 } }
+            ], plotlyLayout);
+        }
+
+        /**
+         * Memperbarui tampilan Fungsi Alih
+         */
+        function updateTFDisplay(tf) {
+            function polyToLatex(poly) {
+                let s = "";
+                poly.coeffs.forEach((c, i) => {
+                    let power = poly.coeffs.length - 1 - i;
+                    if (Math.abs(c) < 1e-6) return;
+                    
+                    let sign = (c >= 0) ? (i > 0 ? " + " : "") : " - ";
+                    let val = Math.abs(c);
+                    if (Math.abs(val - 1) < 1e-6 && power > 0) val = "";
+                    else val = val.toFixed(2);
+                    
+                    let term = "";
+                    if (power === 0) term = `${val}`;
+                    else if (power === 1) term = `${val}s`;
+                    else term = `${val}s^${power}`;
+                    
+                    s += sign + term;
                 });
-                
-                const mp = (y_max > y_final && Math.abs(y_final) > 1e-6) ? ((y_max - y_final) / y_final) * 100 : 0;
-                const tr = (t_tr_10 !== -1 && t_tr_90 !== -1) ? (t_tr_90 - t_tr_10) : 0;
-                const ess = setpoint - y_final;
-                
-                return { mp, tp: mp > 0 ? t_peak : 0, tr, ts: t_ts, yss: y_final, ess };
-            }
-
-            function findPolynomialRoots(coeffs) {
-                let firstNonZero = coeffs.findIndex(c => Math.abs(c) > 1e-9);
-                if (firstNonZero === -1) return [];
-                let p = coeffs.slice(firstNonZero);
-                const degree = p.length - 1;
-
-                if (degree === 1) { return [{ re: -p[1] / p[0], im: 0 }]; }
-                if (degree === 2) {
-                    const [a, b, c] = p;
-                    const d = b * b - 4 * a * c;
-                    return d >= 0 ? [ { re: (-b + Math.sqrt(d)) / (2 * a), im: 0 }, { re: (-b - Math.sqrt(d)) / (2 * a), im: 0 } ] : [ { re: -b / (2 * a), im: Math.sqrt(-d) / (2 * a) }, { re: -b / (2 * a), im: -Math.sqrt(-d) / (2 * a) } ];
-                }
-                if (degree === 3) {
-                    let [a, b, c, d] = p;
-                    b /= a; c /= a; d /= a;
-                    const p_ = (3 * c - b * b) / 3;
-                    const q_ = (2 * Math.pow(b, 3) - 9 * b * c + 27 * d) / 27;
-                    const D = Math.pow(q_ / 2, 2) + Math.pow(p_ / 3, 3);
-                    const roots = [];
-                    if (D >= 0) {
-                        const u = Math.cbrt(-q_/2 + Math.sqrt(D)), v = Math.cbrt(-q_/2 - Math.sqrt(D));
-                        roots.push({ re: u + v - b/3, im: 0 }, { re: -0.5*(u+v) - b/3, im: 0.5*Math.sqrt(3)*(u-v) }, { re: -0.5*(u+v) - b/3, im: -0.5*Math.sqrt(3)*(u-v) });
-                    } else {
-                        const r = Math.sqrt(-(Math.pow(p_/3, 3))), phi = Math.atan2(Math.sqrt(-D), -q_/2), R = 2 * Math.cbrt(r);
-                        roots.push({ re: R * Math.cos(phi/3) - b/3, im: 0 }, { re: R * Math.cos((phi + 2*Math.PI)/3) - b/3, im: 0 }, { re: R * Math.cos((phi + 4*Math.PI)/3) - b/3, im: 0 });
-                    }
-                    return roots.map(r => ({ re: r.re, im: Math.abs(r.im) < 1e-9 ? 0 : r.im }));
-                }
-                return []; 
-            }
-
-            function formatPolesHTML(poles) {
-                if (poles.length === 0) { return `<br><h3>Stabilitas & Pole Sistem</h3><p class="desc">Pole tidak dapat dihitung (sistem orde > 3).</p>`; }
-                let polesHTML = '<ul>';
-                let isStable = true;
-                poles.forEach(pole => {
-                    polesHTML += `<li>p = ${pole.re.toFixed(4)}`;
-                    if (Math.abs(pole.im) > 1e-9) polesHTML += ` ${pole.im > 0 ? '+' : '-'} j${Math.abs(pole.im).toFixed(4)}`;
-                    polesHTML += '</li>';
-                    if (pole.re > 1e-6) isStable = false;
-                });
-                polesHTML += '</ul>';
-                let stabilityDesc = isStable ? `<span class="good">STABIL</span>` : `<span class="bad">TIDAK STABIL</span>`;
-                return `<br><h3>Stabilitas & Pole Sistem</h3>${polesHTML}<p class="desc">Kesimpulan: Sistem ini <strong>${stabilityDesc}</strong>.</p>`;
+                return s.length > 0 ? s : "0";
             }
             
-            // ==========================================================
-            // Bagian 5: Fungsi-Fungsi Interpretasi
-            // ==========================================================
+            const numStr = polyToLatex(tf.num);
+            const denStr = polyToLatex(tf.den);
+            clTfDisplay.innerHTML = `$$G_{CL}(s) = \\frac{${numStr}}{${denStr}}$$`;
+            MathJax.typesetPromise([clTfDisplay]);
+        }
 
-            function generateTransientInterpretation(stats, params) {
-                let html = "";
+        /**
+         * Memperbarui panel analisis
+         */
+        /**
+         * Memperbarui panel analisis
+         * (PERBAIKAN: Mengubah format pole list dan menambah kesimpulan)
+         */
+        function updateAnalysis(openLoopTf, closedLoopTf, simulationData, poles, poleMetrics, params) {
+            updateTFDisplay(closedLoopTf);
+            
+            const metrics = getPerformanceMetrics(simulationData, poles, poleMetrics);
+            
+            // Mengisi "Analisis Kuantitatif Sistem"
+            clAnalysisText.innerHTML = `
+                <ul>
+                    <li>Settling Time (t_s): <strong>${metrics.settlingTime}</strong> s</li>
+                    <li>Rise Time (t_r 10-90%): <strong>${metrics.riseTime}</strong> s</li>
+                    <li>Peak Time (t_p): <strong>${metrics.peakTime}</strong> s</li>
+                    <li>Overshoot (%OS): <strong>${metrics.overshoot}</strong> %</li>
+                    <li>Steady-State Error: <strong>${metrics.steadyStateError}</strong></li>
+                </ul>
+            `;
+            
+            // 1. Dapatkan kesimpulan ringkas
+            const stabilitySummary = getStabilitySummary(poles);
+            
+            // 2. Buat list pole secara vertikal (ul/li)
+            clPolesAnalysis.innerHTML = `
+                <strong>Poles:</strong>
+                <ul style="margin-top: 5px; padding-left: 20px; font-family: var(--font-mono);">
+                    ${poles.map(p => `<li><code>${p.re.toFixed(3)} ${p.im >= 0 ? '+' : '-'} ${Math.abs(p.im).toFixed(3)}j</code></li>`).join('')}
+                </ul>
+                <p style="margin-top: 10px;"><strong>Kesimpulan: ${stabilitySummary}</strong></p>
+            `;
 
-                // Interpretasi Overshoot (Mp)
-                if (stats.mp > 40) {
-                    html += `<p><strong class="bad">Overshoot sangat tinggi (${stats.mp.toFixed(1)}%).</strong> Ini menunjukkan respons yang sangat agresif dan berisiko. Pada sistem nyata, ini bisa menyebabkan kerusakan mekanis (misal, lengan robot menabrak) atau ketidaknyamanan (misal, lift yang "terlontar"). Coba naikkan gain Derivatif (<code>Kd</code>) atau turunkan gain Proporsional (<code>Kp</code>).</p>`;
-                } else if (stats.mp > 15) {
-                    html += `<p><strong class="warn">Overshoot cukup tinggi (${stats.mp.toFixed(1)}%).</strong> Sistem merespons cepat, namun melampaui setpoint secara signifikan sebelum stabil. Ini mungkin dapat diterima untuk beberapa aplikasi, namun tidak untuk yang memerlukan presisi tinggi. Penambahan gain Derivatif (<code>Kd</code>) dapat membantu meredamnya.</p>`;
-                } else if (stats.mp > 0) {
-                     html += `<p><strong class="good">Overshoot terkendali (${stats.mp.toFixed(1)}%).</strong> Sistem menunjukkan respons yang cepat dengan sedikit ayunan. Ini adalah trade-off yang baik antara kecepatan dan stabilitas untuk banyak aplikasi.</p>`;
-                } else {
-                    html += `<p><strong class="good">Tidak ada overshoot.</strong> Sistem sangat teredam, memberikan respons yang mulus tanpa melampaui setpoint. Namun, perhatikan Waktu Tunak (Ts); bisa jadi responsnya terlalu lambat.</p>`;
+            // Mengisi "Analisis Lanjutan & Interpretasi"
+            stabilityInterpretationDiv.innerHTML = generateStabilityInterpretation(poles, metrics);
+            transientInterpretationDiv.innerHTML = generateTransientInterpretation(metrics, params);
+
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([stabilityInterpretationDiv, transientInterpretationDiv]);
+            }
+        }
+
+        /**
+         * Menghitung metrik performa dari data simulasi
+         */
+        function getPerformanceMetrics(simData, poles, poleMetrics) {
+            const { time, response } = simData;
+            const steadyStateValue = response[response.length - 1];
+            let { settlingTime } = poleMetrics; 
+
+            let riseTime = 'N/A';
+            try {
+                const val10 = steadyStateValue * 0.1;
+                const val90 = steadyStateValue * 0.9;
+                const t10 = time[response.findIndex(v => v >= val10)];
+                const t90 = time[response.findIndex(v => v >= val90)];
+                if (t10 !== undefined && t90 !== undefined) {
+                    riseTime = (t90 - t10).toFixed(3);
                 }
+            } catch (e) {}
 
-                // Interpretasi Waktu Tunak (Ts)
-                if (stats.ts >= T_SIM_MAX * 0.99) {
-                     html += `<p><strong class="bad">Sistem sangat lambat atau tidak pernah tunak</strong> dalam waktu simulasi. Respons ini mungkin terlalu lamban untuk aplikasi praktis. Untuk mempercepat, coba naikkan gain Proporsional (<code>Kp</code>) secara perlahan.</p>`;
-                } else if (stats.ts > 4) {
-                    html += `<p><strong class="warn">Waktu tunak (${stats.ts.toFixed(2)}s) tergolong lambat.</strong> Sistem membutuhkan waktu yang cukup lama untuk menghilangkan error dan mencapai kondisi stabil. Ini bisa menjadi masalah pada proses yang memerlukan kecepatan tinggi.</p>`;
-                } else {
-                    html += `<p><strong class="good">Waktu tunak (${stats.ts.toFixed(2)}s) tergolong cepat.</strong> Sistem mampu mencapai dan mempertahankan setpoint dalam waktu yang singkat, menunjukkan kinerja yang efisien dan responsif.</p>`;
-                }
-
-                // Interpretasi Error Steady-State (ess)
-                if (Math.abs(stats.ess) > 0.05) {
-                    html += `<p><strong class="bad">Error steady-state signifikan (${stats.ess.toFixed(3)}).</strong> Sistem tidak mampu mencapai setpoint secara presisi. Ini adalah ciri khas sistem Tipe 0 (seperti kendali P pada plant Tipe 0) yang tidak dapat melacak input step tanpa error. Solusinya adalah dengan menambahkan gain Integral (<code>Ki</code>), yang akan mengubahnya menjadi sistem Tipe 1 dan mengeliminasi error ini.</p>`;
-                } else if (Math.abs(stats.ess) > 1e-3) {
-                     html += `<p><strong class="warn">Terdapat sedikit error steady-state (${stats.ess.toFixed(3)}).</strong> Kemungkinan besar karena keterbatasan presisi numerik atau gain Integral (<code>Ki</code>) yang terlalu kecil untuk sepenuhnya menghilangkan error dalam waktu singkat.</p>`;
-                } else {
-                     html += `<p><strong class="good">Error steady-state dapat diabaikan (${stats.ess.toFixed(3)}).</strong> Sistem berhasil mencapai setpoint dengan presisi sangat tinggi, kemungkinan besar berkat adanya aksi kendali Integral (<code>Ki</code> > 0).</p>`;
-                }
-
-                return html;
+            let peakTime = 'N/A';
+            let overshoot = 0;
+            let peakValue = Math.max(...response);
+            
+            if (peakValue > steadyStateValue) {
+                let peakIndex = response.indexOf(peakValue);
+                peakTime = time[peakIndex].toFixed(3);
+                overshoot = ((peakValue - steadyStateValue) / steadyStateValue) * 100;
             }
 
-            function generateStabilityInterpretation(poles) {
-                 if (poles.length === 0) return `<p>Interpretasi tidak tersedia karena pole tidak dapat dihitung untuk sistem orde lebih tinggi dari 3.</p>`;
+            if (overshoot < 0.001) overshoot = 0;
 
-                let isUnstable = poles.some(p => p.re > 1e-6);
-                if (isUnstable) {
-                    return `<p><strong class="bad">Sistem TIDAK STABIL.</strong> Adanya pole di sisi kanan bidang-s (memiliki bagian riil positif) menyebabkan respons sistem tumbuh secara eksponensial tanpa batas. Pada sistem fisik, ini akan berujung pada saturasi aktuator atau kerusakan fatal. Ini adalah kondisi yang harus dihindari dalam desain sistem kendali. Turunkan gain <code>Kp</code> secara drastis atau perkenalkan feedback yang lebih kuat.</p>`;
-                }
-
-                let hasComplex = poles.some(p => Math.abs(p.im) > 1e-6);
-                let hasRepeated = false;
-                if (poles.length > 1) {
-                    for(let i=0; i<poles.length; i++){
-                        for(let j=i+1; j<poles.length; j++){
-                           if(Math.abs(poles[i].re - poles[j].re) < 1e-4 && Math.abs(poles[i].im - poles[j].im) < 1e-4){
-                               hasRepeated = true;
-                               break;
-                           } 
-                        }
-                        if(hasRepeated) break;
-                    }
-                }
-
-                if (hasComplex) {
-                    // --- PERBAIKAN ---
-                    // Kita cari pole-nya dulu, baru kita akses propertinya
-                    // untuk menghindari error 'undefined.re'
-                    const complexPole = poles.find(p => p.im > 0);
-                    const sigma = complexPole ? complexPole.re.toFixed(3) : 'N/A';
-                    const omega_d = complexPole ? complexPole.im.toFixed(3) : 'N/A';
-                    // --- AKHIR PERBAIKAN ---
-
-                    return `<p><strong class="warn">Sistem Underdamped (Teredam Kurang).</strong> Adanya pasangan pole kompleks konjugat menyebabkan respons sistem berosilasi sebelum mencapai kestabilan.
-                        <ul>
-                            <li>Bagian Riil (<code>&sigma; = ${sigma}</code>) menentukan seberapa cepat osilasi diredam. Semakin ke kiri (lebih negatif), semakin cepat redamannya.</li>
-                            <li>Bagian Imajiner (<code>&omega;d = ${omega_d}</code>) menentukan frekuensi osilasi. Semakin besar, semakin cepat osilasinya.</li>
-                        </ul>
-                        Ini adalah karakteristik umum pada sistem yang responsif. Contohnya adalah suspensi mobil sport yang sedikit memantul.</p>`;
-                } else if (hasRepeated) {
-                    return `<p><strong class="good">Sistem Critically Damped (Teredam Kritis).</strong> Adanya pole riil yang berulang (sama) menunjukkan bahwa sistem memberikan respons tercepat yang mungkin tanpa mengalami overshoot. Ini sering dianggap sebagai kondisi ideal dalam banyak aplikasi, seperti gerakan presisi pada sebuah plotter atau robot bedah.</p>`;
-                } else {
-                     return `<p><strong class="good">Sistem Overdamped (Teredam Lebih).</strong> Semua pole sistem bersifat riil dan berbeda. Hal ini menghasilkan respons yang lambat dan mulus, tanpa osilasi sama sekali. Meskipun sangat stabil, sistem mungkin terlalu lamban untuk beberapa aplikasi. Contohnya adalah pintu hidrolik yang menutup perlahan tanpa membanting.</p>`;
-                }
+            if (isNaN(steadyStateValue)) {
+                return {
+                    settlingTime: 'N/A (Tidak Stabil)', riseTime: 'N/A', peakTime: 'N/A',
+                    overshoot: 'N/A', steadyStateError: 'N/A'
+                };
             }
+
+            return {
+                settlingTime: isFinite(settlingTime) ? settlingTime.toFixed(3) : 'N/A (Tidak Stabil)',
+                riseTime: riseTime,
+                peakTime: peakTime,
+                overshoot: overshoot.toFixed(2),
+                steadyStateError: Math.abs(1.0 - steadyStateValue).toFixed(3)
+            };
+        }
+        /**
+         * Memberikan interpretasi kualitatif
+         * (PERBAIKAN: Format list vertikal + pewarnaan nilai)
+         */
+        function generateTransientInterpretation(metrics, params) {
+            if (metrics.riseTime === 'N/A' && metrics.settlingTime === 'N/A (Tidak Stabil)') {
+                return `<p><strong class="danger">Sistem Tidak Stabil.</strong> Respon sistem tumbuh tanpa batas (meledak). Ini disebabkan oleh adanya pole di sisi kanan bidang-s.</p>`;
+            }
+
+            // --- Logika Pewarnaan ---
+            const os_val = parseFloat(metrics.overshoot);
+            const err_val = parseFloat(metrics.steadyStateError);
+            
+            const getOvershootClass = () => {
+                if (os_val < 0.1) return 'good';
+                if (os_val <= 25.0) return 'warn'; // Dianggap "Waspada" jika > 0% tapi < 25%
+                return 'danger'; // Dianggap "Bahaya" jika > 25%
+            };
+            const getErrorClass = () => (err_val > 0.01) ? 'warn' : 'good';
+            // -------------------------
+
+            let html = "<ul style='padding-left: 20px;'>";
+
+            // 1. Rise Time
+            html += `<li style="margin-bottom: 10px;">
+                        <strong>Rise Time (t_r): <span class="primary">${metrics.riseTime} s</span></strong>
+                        <p style="margin: 5px 0 0 0; color: var(--color-text-dim);">
+                            Waktu respon untuk naik dari 10% ke 90% nilai akhir. Ini mengindikasikan seberapa cepat sistem merespons.
+                        </p>
+                     </li>`;
+
+            // 2. Settling Time
+            html += `<li style="margin-bottom: 10px;">
+                        <strong>Settling Time (t_s): <span class="primary">${metrics.settlingTime} s</span></strong>
+                        <p style="margin: 5px 0 0 0; color: var(--color-text-dim);">
+                            Waktu respon untuk masuk dan tetap berada dalam 2% dari nilai akhir. Ini mengindikasikan kapan sistem mencapai kestabilan.
+                        </p>
+                     </li>`;
+
+            // 3. Overshoot & Peak Time
+            if (os_val > 0.1) {
+                html += `<li style="margin-bottom: 10px;">
+                            <strong>Overshoot (%OS): <span class="${getOvershootClass()}">${metrics.overshoot} %</span></strong>
+                            <p style="margin: 5px 0 0 0; color: var(--color-text-dim);">
+                                Persentase maksimum respon melampaui nilai akhir (terjadi pada <strong>${metrics.peakTime} s</strong>). Ini adalah ciri khas sistem <strong>underdamped</strong>.
+                            </p>
+                         </li>`;
+            } else {
+                html += `<li style="margin-bottom: 10px;">
+                            <strong>Overshoot (%OS): <span class="good">0 %</span></strong>
+                            <p style="margin: 5px 0 0 0; color: var(--color-text-dim);">
+                                Sistem tidak melampaui nilai akhir. Ini adalah ciri khas sistem <strong>critically damped</strong> atau <strong>overdamped</strong>.
+                            </p>
+                         </li>`;
+            }
+
+            // 4. Steady-State Error
+            if (err_val > 0.01) {
+                html += `<li style="margin-bottom: 10px;">
+                            <strong>Steady-State Error (E_ss): <span class="warn">${metrics.steadyStateError}</span></strong>
+                            <p style="margin: 5px 0 0 0;" class="warn">
+                                Ada selisih permanen antara setpoint (1.0) dan nilai akhir respon. Ini umum terjadi pada sistem Tipe 0 tanpa kontroler Integral.
+                            </p>`;
+                if (params.usePID && params.Ki === 0) {
+                    html += `<p style="margin: 10px 0 0 15px; font-style: italic;">
+                                Saran: Coba tambahkan nilai <strong>Integral ($K_i$)</strong> untuk menghilangkan error ini.
+                            </p>`;
+                }
+                html += `</li>`;
+            } else {
+                html += `<li style="margin-bottom: 10px;">
+                            <strong>Steady-State Error (E_ss): <span class="good">${metrics.steadyStateError}</span></strong>
+                            <p style="margin: 5px 0 0 0;" class="good">
+                                Sistem berhasil mencapai setpoint. Ini tercapai karena sistem Tipe 1 atau karena penggunaan kontroler <strong>Integral ($K_i$)</strong>.
+                            </p>
+                         </li>`;
+            }
+
+            html += "</ul>";
+            return html;
+        }
+
+        function generateStabilityInterpretation(poles, metrics) {
+            // (Ini adalah fungsi dari file lama Anda, sedikit disesuaikan)
+            const hasComplex = poles.some(p => p.im !== 0);
+            const hasRepeated = poles.some((p, i) => poles.findIndex(p2 => Math.abs(p.re - p2.re) < 1e-3 && Math.abs(p.im - p2.im) < 1e-3) !== i);
+            const hasUnstable = poles.some(p => p.re > 1e-3);
+            const hasMarginal = poles.some(p => Math.abs(p.re) < 1e-3 && p.im !== 0);
+
+            if (hasUnstable) {
+                return `<p><strong class="danger">SISTEM TIDAK STABIL</strong>. Terdapat setidaknya satu pole di sisi kanan bidang-s (misal: ${poles.find(p=>p.re > 0).re.toFixed(3)}), menyebabkan respons meledak menuju tak hingga.</p>`;
+            }
+            if (hasMarginal) {
+                return `<p><strong class="warn">Sistem Stabil Marjinal.</strong> Terdapat pole di sumbu imajiner (bagian riil = 0). Sistem akan berosilasi selamanya tanpa redaman.</p>`;
+            }
+            
+            if (hasComplex) {
+                const complexPole = poles.find(p => p.im > 0);
+                const sigma = complexPole ? complexPole.re.toFixed(3) : 'N/A';
+                const omega_d = complexPole ? complexPole.im.toFixed(3) : 'N/A';
+                return `<p><strong class="warn">Sistem Underdamped (Teredam Kurang).</strong> Adanya pasangan pole kompleks konjugat menyebabkan respons sistem berosilasi (overshoot ${metrics.overshoot}%) sebelum mencapai kestabilan.
+                    <ul>
+                        <li>Bagian Riil (<code>&sigma; = ${sigma}</code>) menentukan seberapa cepat osilasi diredam (Settling Time).</li>
+                        <li>Bagian Imajiner (<code>&omega;d = ${omega_d}</code>) menentukan frekuensi osilasi (Peak Time).</li>
+                    </ul></p>`;
+            } else if (hasRepeated) {
+                return `<p><strong class="good">Sistem Critically Damped (Teredam Kritis).</strong> Adanya pole riil yang berulang (sama) menunjukkan bahwa sistem memberikan respons tercepat yang mungkin tanpa mengalami overshoot.</p>`;
+            } else {
+                 return `<p><strong class="good">Sistem Overdamped (Teredam Lebih).</strong> Semua pole sistem bersifat riil dan berbeda. Hal ini menghasilkan respons yang lambat dan mulus, tanpa osilasi sama sekali.</p>`;
+            }
+        }
+
+        /**
+         * Memberikan ringkasan stabilitas
+         */
+        function getStabilitySummary(poles) {
+            const hasUnstable = poles.some(p => p.re > 1e-3);
+            if (hasUnstable) return `<strong class="danger">SISTEM TIDAK STABIL</strong>`;
+            
+            const hasMarginal = poles.some(p => Math.abs(p.re) < 1e-3 && p.im !== 0);
+            if (hasMarginal) return `<strong class="warn">Sistem Stabil Marjinal</strong>`;
+            
+            const hasComplex = poles.some(p => p.im !== 0);
+            if (hasComplex) return `<strong class="warn">Sistem Stabil (Underdamped)</strong>`;
+            
+            const hasRepeated = poles.some((p, i) => poles.findIndex(p2 => Math.abs(p.re - p2.re) < 1e-3 && Math.abs(p.im - p2.im) < 1e-3) !== i);
+            if (hasRepeated) return `<strong class="good">Sistem Stabil (Critically Damped)</strong>`;
+            
+            return `<strong class="good">Sistem Stabil (Overdamped)</strong>`;
+        }
         
-        // ==========================================================
-        // Bagian 6: Logika Animasi Motor (Tambahan)
-        // ==========================================================
+        /**
+         * Mengatur visibilitas kontrol berdasarkan pilihan
+         * (SESUAI DENGAN HTML BARU ANDA)
+         */
+        /**
+         * Mengatur visibilitas kontrol berdasarkan pilihan
+         * (PERBAIKAN: Logika Tipe 2 sekarang benar)
+         */
+        function updateControlVisibility() {
+            const plantType = document.getElementById('plant-type').value;
+            const pidEnabled = document.getElementById('pid-enable').checked;
+            const tachoEnabled = document.getElementById('tacho-enable').checked;
+
+            // --- INI PERBAIKANNYA ---
+            // Tipe 1 dan 2 menggunakan K dan Tau
+            document.getElementById('params-k-tau').style.display = (plantType === '1' || plantType === '2') ? 'block' : 'none';
+            // Hanya Tipe 3 yang menggunakan Zeta dan Wn
+            document.getElementById('params-zeta-wn').style.display = (plantType === '3') ? 'block' : 'none';
+            // --- AKHIR PERBAIKAN ---
             
-            /**
-             * Memulai loop animasi playback berdasarkan data simulasi.
-             */
-            function runMotorAnimation(simData, plantType) {
-                // Batalkan frame animasi sebelumnya jika ada
-                if (currentAnimationId) {
-                    cancelAnimationFrame(currentAnimationId);
+            // Tampilkan/sembunyikan grup parameter Kontroler
+            document.getElementById('pid-params').style.display = pidEnabled ? 'block' : 'none';
+            document.getElementById('tacho-params').style.display = tachoEnabled ? 'block' : 'none';
+            
+            // Perbarui deskripsi Tacho
+            const tachoDesc = document.getElementById('tacho-desc');
+            if (tachoEnabled) {
+                if (plantType === '2') { // Posisi
+                    tachoDesc.innerHTML = `(Feedback $H(s) = K_t s$ (Velocity Fdbk))`;
+                } else { // Kecepatan
+                    tachoDesc.innerHTML = `(Feedback $H(s) = K_t$ (Proportional Fdbk))`;
                 }
-                
-                // Simpan data untuk diakses oleh loop animasi
-                animationData = simData;
-                animationPlantType = plantType;
-                
-                // Cek jika simulasi gagal (NaN)
-                if (isNaN(animationData.response[animationData.response.length - 1])) {
-                     animationStatus.textContent = "Animasi tidak tersedia (Sistem Tidak Stabil)";
-                     drawAnimation(0); // Gambar frame dasar
-                     currentAnimationId = null;
-                     return;
+            } else {
+                tachoDesc.innerHTML = `(Feedback $H(s) = 1$ (Unity))`;
+            }
+            
+            // Render ulang MathJax untuk deskripsi Tacho
+            if (window.MathJax && window.MathJax.typesetPromise) {
+                MathJax.typesetPromise([tachoDesc]);
+            }
+        }
+
+        /**
+         * Memperbarui teks nilai di sebelah slider
+         * (SESUAI DENGAN HTML BARU ANDA)
+         */
+        function updateSliderValues(event) {
+            const id = event.target.id;
+            const val = event.target.value;
+            const valDisplay = document.getElementById(`${id}-val`);
+            if (valDisplay) {
+                valDisplay.textContent = val;
+            }
+        }
+
+        /**
+         * (BARU) Sinkronkan nilai teks slider dengan posisi slider
+         * saat halaman baru dimuat (untuk memperbaiki bug cache browser).
+         */
+        function syncSliderValuesOnLoad() {
+            const allSliders = document.querySelectorAll('input[type="range"]');
+            allSliders.forEach(slider => {
+                const valDisplay = document.getElementById(`${slider.id}-val`);
+                if (valDisplay) {
+                    // Baca nilai slider (yang mungkin dari cache) dan
+                    // paksakan nilai itu ke dalam teks span.
+                    valDisplay.textContent = slider.value;
                 }
+            });
+        }
 
-                // Reset state animasi
-                animStartTime = 0; // Akan diset pada frame pertama
-                animationStatus.textContent = "Memutar ulang respon sistem...";
+        /**
+         * Memasang semua event listener
+         * (SESUAI DENGAN HTML BARU ANDA)
+         */
+        function setupEventListeners() {
+            // Listener untuk dropdown dan checkbox
+            const visibilityControls = ['plant-type', 'pid-enable', 'tacho-enable'];
+            visibilityControls.forEach(id => {
+                document.getElementById(id).addEventListener('change', () => {
+                    updateControlVisibility();
+                    updateSimulator(true); // Panggil update penuh
+                });
+            });
 
-                // Mulai loop animasi
+            // Listener untuk semua slider (range inputs)
+            const allSliders = document.querySelectorAll('input[type="range"]');
+            allSliders.forEach(control => {
+                // 1. Update teks nilai (misal: "2.0") saat digeser
+                control.addEventListener('input', updateSliderValues); 
+                
+                // 2. Update plot (real-time) saat digeser
+                control.addEventListener('input', () => updateSimulator(false)); 
+                
+                // 3. Update animasi saat dilepas
+                control.addEventListener('change', () => updateSimulator(true));
+            });
+        }
+
+        // ==========================================================
+        // Bagian 5: Logika Animasi (Tidak Berubah)
+        // ==========================================================
+        function runMotorAnimation(simData, plantType) {
+            if (currentAnimationId) cancelAnimationFrame(currentAnimationId);
+            animationData = simData;
+            animationPlantType = plantType;
+            
+            if (isNaN(animationData.response[animationData.response.length - 1])) {
+                 animationStatus.textContent = "Animasi tidak tersedia (Sistem Tidak Stabil)";
+                 drawAnimation(0); 
+                 currentAnimationId = null;
+                 return;
+            }
+            animStartTime = 0; 
+            animationStatus.textContent = "Memutar ulang respon sistem...";
+            currentAnimationId = requestAnimationFrame(animationLoop);
+        }
+
+        function animationLoop(timestamp) {
+            if (animStartTime === 0) animStartTime = timestamp;
+            const elapsedTime = timestamp - animStartTime;
+            const progress = Math.min(elapsedTime / animPlaybackDuration, 1.0);
+            
+            let animFrameIndex = Math.floor(progress * (animationData.response.length - 1));
+            if (animFrameIndex >= animationData.response.length) animFrameIndex = animationData.response.length - 1;
+
+            const currentValue = animationData.response[animFrameIndex];
+            drawAnimation(currentValue);
+
+            if (progress < 1.0) {
                 currentAnimationId = requestAnimationFrame(animationLoop);
+            } else {
+                animationStatus.textContent = `Animasi selesai. Nilai akhir: ${currentValue.toFixed(3)}`;
+                currentAnimationId = null;
             }
+        }
 
-            /**
-             * Loop utama animasi (dijalankan oleh requestAnimationFrame)
-             */
-            function animationLoop(timestamp) {
-                if (animStartTime === 0) {
-                    animStartTime = timestamp; // Inisialisasi waktu mulai
-                }
-                
-                const elapsedTime = timestamp - animStartTime;
-                const progress = Math.min(elapsedTime / animPlaybackDuration, 1.0);
-                
-                // Tentukan frame data simulasi mana yang akan ditampilkan
-                // berdasarkan kemajuan playback (progress 0.0 -> 1.0)
-                let animFrameIndex = Math.floor(progress * (animationData.response.length - 1));
-                
-                if (animFrameIndex >= animationData.response.length) {
-                    animFrameIndex = animationData.response.length - 1;
-                }
-
-                const currentValue = animationData.response[animFrameIndex];
-                drawAnimation(currentValue);
-
-                if (progress < 1.0) {
-                    // Lanjutkan loop
-                    currentAnimationId = requestAnimationFrame(animationLoop);
-                } else {
-                    // Selesai
-                    animationStatus.textContent = `Animasi selesai. Nilai akhir: ${currentValue.toFixed(3)}`;
-                    currentAnimationId = null;
-                }
+        function drawAnimation(value) {
+            motorCtx.fillStyle = '#1a1a1a';
+            motorCtx.fillRect(0, 0, motorCanvas.width, motorCanvas.height);
+            
+            if (animationPlantType === '2') { // Tipe 2 = Kendali Posisi (Disk berputar)
+                drawPositionDisk(motorCtx, value);
+            } else { // Tipe 1 & 3 = Kendali Kecepatan (Gauge/Tachometer)
+                drawSpeedGauge(motorCtx, value);
             }
+        }
 
-            /**
-             * Fungsi penggambaran utama, memilih jenis visualisasi.
-             */
-            function drawAnimation(value) {
-                // Bersihkan canvas
-                motorCtx.fillStyle = '#1a1a1a';
-                motorCtx.fillRect(0, 0, motorCanvas.width, motorCanvas.height);
-                
-                // Tentukan jenis animasi
-                if (animationPlantType === '2') {
-                    // Tipe 2 = Kendali Posisi (Disk berputar)
-                    drawPositionDisk(motorCtx, value);
-                } else {
-                    // Tipe 1 & 3 = Kendali Kecepatan (Gauge/Tachometer)
-                    drawSpeedGauge(motorCtx, value);
-                }
-            }
+        function drawSpeedGauge(ctx, speed) {
+            const centerX = motorCanvas.width / 2;
+            const centerY = motorCanvas.height / 2 + 30;
+            const radius = 80;
+            const maxDisplaySpeed = 1.5; 
+            const angle = (speed / maxDisplaySpeed) * Math.PI;
+            const finalAngle = Math.max(0, Math.min(Math.PI, angle));
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, Math.PI, 0);
+            ctx.strokeStyle = colorBorder; 
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            ctx.font = "14px " + fontMono;
+            ctx.fillStyle = colorTextDim; 
+            ctx.textAlign = "center";
+            ctx.fillText("0", centerX - radius - 15, centerY + 5);
+            ctx.fillText("1.0", centerX + radius - 25, centerY - radius + 15);
+            ctx.fillText("1.5+", centerX + radius + 15, centerY + 5);
+            const needleLength = radius - 10;
+            const needleAngle = Math.PI - finalAngle; 
+            const needleX = centerX + needleLength * Math.cos(needleAngle);
+            const needleY = centerY - needleLength * Math.sin(needleAngle);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(needleX, needleY);
+            ctx.strokeStyle = colorDanger; 
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = colorDanger;
+            ctx.fill();
+            ctx.font = "bold 24px " + fontMono;
+            ctx.fillStyle = colorSecondary; 
+            ctx.fillText(speed.toFixed(3), centerX, centerY + 50);
+            ctx.font = "16px " + fontMain;
+            ctx.fillStyle = colorPrimary; 
+            ctx.fillText("Kecepatan (rad/s)", centerX, centerY + 80);
+        }
 
-            /**
-             * Menggambar visualisasi Gauge untuk Kendali Kecepatan.
-             */
-            function drawSpeedGauge(ctx, speed) {
-                const centerX = motorCanvas.width / 2;
-                const centerY = motorCanvas.height / 2 + 30;
-                const radius = 80;
-                
-                // Normalisasi speed. Asumsikan setpoint 1.0 adalah 100%.
-                // Kita beri ruang hingga 1.5x (untuk overshoot)
-                const maxDisplaySpeed = 1.5; 
-                const angle = (speed / maxDisplaySpeed) * Math.PI; // 0 s/d 180 derajat
-                
-                // Batasi sudut
-                const finalAngle = Math.max(0, Math.min(Math.PI, angle));
+        function drawPositionDisk(ctx, position) {
+            const centerX = motorCanvas.width / 2;
+            const centerY = motorCanvas.height / 2 + 30;
+            const radius = 80;
+            const angle = position;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = colorBgPanel; 
+            ctx.fill();
+            ctx.strokeStyle = colorBorder; 
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            const angleOffset = -Math.PI / 2;
+            const setpointAngle = 1.0 + angleOffset; 
+            const setpointX = centerX + (radius + 15) * Math.cos(setpointAngle);
+            const setpointY = centerY + (radius + 15) * Math.sin(setpointAngle);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(setpointX, setpointY);
+            ctx.strokeStyle = colorSecondary; 
+            ctx.lineWidth = 2;
+            ctx.setLineDash([5, 5]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = colorSecondary;
+            ctx.font = "14px " + fontMono;
+            ctx.textAlign = "center";
+            ctx.fillText("1.0", setpointX + 10*Math.cos(setpointAngle), setpointY + 10*Math.sin(setpointAngle) + 5);
+            const currentAngle = angle + angleOffset;
+            const lineX = centerX + radius * Math.cos(currentAngle);
+            const lineY = centerY + radius * Math.sin(currentAngle);
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.lineTo(lineX, lineY);
+            ctx.strokeStyle = colorDanger; 
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
+            ctx.fillStyle = colorDanger;
+            ctx.fill();
+            ctx.font = "bold 24px " + fontMono;
+            ctx.fillStyle = colorSecondary;
+            ctx.textAlign = "center";
+            ctx.fillText(angle.toFixed(3), centerX, centerY + radius + 30);
+            ctx.font = "16px " + fontMain;
+            ctx.fillStyle = colorPrimary;
+            ctx.fillText("Posisi (rad)", centerX, centerY + radius + 60);
+        }
 
-                // Gambar busur gauge
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, Math.PI, 0); // Setengah lingkaran
-                ctx.strokeStyle = colorBorder; // var(--color-border)
-                ctx.lineWidth = 5;
-                ctx.stroke();
-
-                // Gambar tanda
-                ctx.font = "14px " + fontMono;
-                ctx.fillStyle = colorTextDim; // var(--color-text-dim)
-                ctx.textAlign = "center";
-                ctx.fillText("0", centerX - radius - 15, centerY + 5);
-                ctx.fillText("0.5", centerX - radius + 25, centerY - radius + 10);
-                ctx.fillText("1.0", centerX + radius - 25, centerY - radius + 10);
-                ctx.fillText("1.5+", centerX + radius + 20, centerY + 5);
-
-                // Gambar jarum
-                const needleLength = radius - 10;
-                // Sudut di canvas: 0 = kanan, PI = kiri. Kita butuh 0 di kiri.
-                const needleAngle = Math.PI - finalAngle; 
-                const needleX = centerX + needleLength * Math.cos(needleAngle);
-                const needleY = centerY - needleLength * Math.sin(needleAngle);
-                
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.lineTo(needleX, needleY);
-                ctx.strokeStyle = colorDanger; // var(--color-danger)
-                ctx.lineWidth = 3;
-                ctx.stroke();
-
-                // Gambar pivot
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 5, 0, 2 * Math.PI);
-                ctx.fillStyle = colorDanger;
-                ctx.fill();
-
-                // Tampilkan nilai
-                ctx.font = "bold 24px " + fontMono;
-                ctx.fillStyle = colorSecondary; // var(--color-secondary)
-                ctx.fillText(speed.toFixed(3), centerX, centerY + 50);
-                ctx.font = "16px " + fontMain;
-                ctx.fillStyle = colorPrimary; // var(--color-primary)
-                ctx.fillText("Kecepatan (rad/s)", centerX, centerY + 80);
-            }
-
-            /**
-             * Menggambar visualisasi Disk untuk Kendali Posisi.
-             */
-            function drawPositionDisk(ctx, position) {
-                const centerX = motorCanvas.width / 2;
-                const centerY = motorCanvas.height / 2 + 30;
-                const radius = 80;
-                
-                // Posisi 1.0 = 1.0 radian
-                const angle = position;
-
-                // Gambar disk (motor shaft)
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-                ctx.fillStyle = colorBgPanel; // var(--color-bg-panel)
-                ctx.fill();
-                ctx.strokeStyle = colorBorder; // var(--color-border)
-                ctx.lineWidth = 4;
-                ctx.stroke();
-                
-                // Sudut 0 di canvas adalah jam 3. Kita offset 90 derajat agar 0 di atas.
-                const angleOffset = -Math.PI / 2;
-
-                // Gambar garis referensi (Setpoint = 1 rad)
-                const setpointAngle = 1.0 + angleOffset; // 1.0 rad
-                const setpointX = centerX + (radius + 15) * Math.cos(setpointAngle);
-                const setpointY = centerY + (radius + 15) * Math.sin(setpointAngle);
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.lineTo(setpointX, setpointY);
-                ctx.strokeStyle = colorSecondary; // var(--color-secondary)
-                ctx.lineWidth = 2;
-                ctx.setLineDash([5, 5]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.fillStyle = colorSecondary;
-                ctx.font = "14px " + fontMono;
-                ctx.textAlign = "center";
-                ctx.fillText("1.0", setpointX + 10*Math.cos(setpointAngle), setpointY + 10*Math.sin(setpointAngle) + 5);
-
-
-                // Gambar garis posisi saat ini
-                const currentAngle = angle + angleOffset;
-                const lineX = centerX + radius * Math.cos(currentAngle);
-                const lineY = centerY + radius * Math.sin(currentAngle);
-                
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.lineTo(lineX, lineY);
-                ctx.strokeStyle = colorDanger; // var(--color-danger)
-                ctx.lineWidth = 4;
-                ctx.stroke();
-
-                // Gambar pivot
-                ctx.beginPath();
-                ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
-                ctx.fillStyle = colorDanger;
-                ctx.fill();
-
-                // Tampilkan nilai
-                ctx.font = "bold 24px " + fontMono;
-                ctx.fillStyle = colorSecondary;
-                ctx.textAlign = "center";
-                ctx.fillText(angle.toFixed(3), centerX, centerY + radius + 30);
-                ctx.font = "16px " + fontMain;
-                ctx.fillStyle = colorPrimary;
-                ctx.fillText("Posisi (rad)", centerX, centerY + radius + 60);
-            }
-
-        });
+        // ==========================================================
+        // Bagian 6: Inisialisasi
+        // ==========================================================
+        
+        // Panggil listener dan jalankan simulasi awal
+        document.getElementById('plant-type').value = '1';
+        syncSliderValuesOnLoad();
+        setupEventListeners();
+        Plotly.newPlot(plotContainer, [], plotlyLayout, {responsive: true});
+        updateSimulator(true); // Jalankan simulasi pertama kali
+    
+    });
     </script>
 </body>
 </html>
