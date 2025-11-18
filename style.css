@@ -1,0 +1,552 @@
+/* Skema Warna & Font (Dark Theme) */
+:root {
+    --color-bg: #1e1e1e;
+    --color-bg-panel: #2a2a2a;
+    --color-container: #252526;
+    --color-border: #4a4a4a;
+    --color-text: #d4d4d4;
+    --color-text-dim: #9e9e9e;
+    --color-primary: #00aaff;
+    --color-secondary: #00c7ff;
+    --color-danger: #ff4d4d;
+    --color-highlight: #3a3a3a;
+    
+    --font-main: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'Consolas', 'Menlo', 'Courier New', monospace;
+    --font-title: 'Segoe UI Light', 'Roboto Light', Arial, sans-serif;
+}
+
+/* Reset & Tampilan Dasar */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-main);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+h1, h2, h3 {
+    font-family: var(--font-title);
+    color: var(--color-primary);
+    margin-bottom: 15px;
+    font-weight: 300;
+}
+
+h1 {
+    font-size: 2rem;
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: var(--color-secondary);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 5px;
+}
+
+h3 {
+    font-size: 1.2rem;
+    color: var(--color-secondary);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+p {
+    margin-bottom: 15px;
+    font-size: 1rem;
+}
+
+ul, ol {
+    margin-left: 25px;
+    margin-bottom: 15px;
+}
+
+li {
+    margin-bottom: 8px;
+}
+
+code {
+    font-family: var(--font-mono);
+    background-color: var(--color-bg);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+/* Header */
+header {
+    background-color: var(--color-container);
+    padding: 15px 30px;
+    border-bottom: 2px solid var(--color-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 60px;
+    height: 60px;
+    margin-right: 20px;
+}
+
+header h1 {
+    font-size: 1.8rem;
+    margin-bottom: 0;
+}
+
+header h2 {
+    font-size: 1rem;
+    color: var(--color-text-dim);
+    border: none;
+    padding: 0;
+    margin: 0;
+    font-family: var(--font-main);
+    font-weight: 400;
+}
+
+.version {
+    font-size: 0.9rem;
+    color: var(--color-text-dim);
+    font-family: var(--font-mono);
+}
+
+/* Layout Kontainer Utama */
+.container {
+    display: flex;
+    flex-grow: 1;
+    width: 100%;
+    max-width: 1920px;
+    margin: 0 auto;
+}
+
+/* Panel Kiri (Parameter) */
+.panel-container {
+    width: 350px;
+    min-width: 350px;
+    background-color: var(--color-bg-panel);
+    padding: 20px;
+    overflow-y: auto;
+    height: calc(100vh - 97px); /* 100vh - header - footer */
+    border-right: 1px solid var(--color-border);
+}
+
+.panel-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background-color: var(--color-container);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+}
+
+.input-group, .slider-group {
+    margin-bottom: 18px;
+}
+
+.input-group label, .slider-group label {
+    display: block;
+    font-size: 0.95rem;
+    color: var(--color-text);
+    margin-bottom: 8px;
+}
+
+.input-field, .input-group select {
+    width: 100%;
+    padding: 8px;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+}
+
+.input-group select {
+    font-family: var(--font-main);
+}
+
+.slider-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.slider {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    flex-grow: 1;
+    height: 8px;
+    background: var(--color-highlight);
+    outline: none;
+    border-radius: 5px;
+    opacity: 0.9;
+    transition: opacity 0.2s;
+}
+
+.slider:hover {
+    opacity: 1;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--color-primary);
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid var(--color-bg);
+}
+
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--color-primary);
+    cursor: pointer;
+    border-radius: 50%;
+    border: 2px solid var(--color-bg);
+}
+
+.slider-value, #setpoint-unit {
+    display: inline-block;
+    min-width: 45px;
+    text-align: right;
+    font-family: var(--font-mono);
+    color: var(--color-secondary);
+    font-weight: bold;
+}
+
+/* Panel Parameter Turunan */
+.derived-parameters .derived-group {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--color-border);
+}
+.derived-parameters .derived-group:last-child {
+    border-bottom: none;
+}
+.derived-parameters label {
+    font-size: 0.95rem;
+    color: var(--color-text-dim);
+    margin-bottom: 0;
+}
+.derived-value {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    color: var(--color-secondary);
+    font-weight: bold;
+}
+
+.run-button {
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: var(--color-primary);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.run-button:hover {
+    background-color: var(--color-secondary);
+}
+
+.run-button:active {
+    transform: scale(0.98);
+}
+
+/* Konten Kanan (Simulator) */
+.main-content {
+    flex-grow: 1;
+    padding: 25px;
+    overflow-y: auto;
+    height: calc(100vh - 97px); /* 100vh - header - footer */
+}
+
+.content-section {
+    margin-bottom: 25px;
+    padding: 25px;
+    background-color: var(--color-container);
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+}
+
+.toggle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 15px;
+}
+
+.toggle-button {
+    font-family: var(--font-title);
+    font-size: 1.3rem;
+    font-weight: 300;
+    color: var(--color-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 5px;
+    position: relative;
+}
+
+.toggle-button::after {
+    content: '▼';
+    font-size: 0.8rem;
+    margin-left: 10px;
+    transition: transform 0.3s;
+}
+
+.toggle-button.active::after {
+    transform: rotate(180deg);
+}
+
+/* Navigasi Modal */
+.modal-nav {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.modal-button {
+    flex-grow: 1;
+    padding: 10px 15px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-text);
+    background-color: var(--color-container);
+    border: 1px solid var(--color-border);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.modal-button:hover {
+    background-color: var(--color-primary);
+    color: var(--color-bg);
+}
+
+/* Animasi & Plot */
+
+/* Ganti atau tambahkan styling untuk visual container */
+.animation-container {
+    width: 100%;
+    height: 200px; /* Tambahkan tinggi agar ada ruang efek */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    /* Efek Futuristik/Elegance */
+    background: radial-gradient(circle at center, #2a2a2a 0%, #1a1a1a 100%);
+    border: 1px solid var(--color-primary);
+    box-shadow: inset 0 0 10px rgba(0, 170, 255, 0.3), 0 0 5px var(--color-primary);
+    border-radius: 5px;
+}
+
+#motor-canvas {
+    background-color: transparent; /* Ubah canvas menjadi transparan agar background container terlihat */
+    border-radius: 5px;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); /* Tambah glow pada canvas */
+}
+
+.plot-container {
+    width: 100%;
+    min-height: 450px;
+}
+
+/* Kontainer Analisis & TF */
+.tf-container, .analysis-container {
+    font-size: 1.1rem;
+    padding-top: 10px;
+}
+
+.tf-container {
+    text-align: center;
+    font-size: 1.2rem;
+    overflow-x: auto;
+}
+
+.analysis-container ul {
+    list-style-type: '► ';
+    padding-left: 20px;
+}
+.analysis-container li {
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+/* Modal Styling */
+.modal {
+    display: none; /* Sembunyi secara default */
+    position: fixed; /* Tetap di layar */
+    z-index: 1000; /* Di atas segalanya */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto; /* Scroll jika konten panjang */
+    background-color: rgba(0, 0, 0, 0.7); /* Latar belakang gelap transparan */
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: var(--color-bg-panel);
+    margin: 5% auto; /* 5% dari atas dan tengah horizontal */
+    padding: 30px;
+    border: 1px solid var(--color-border);
+    width: 90%;
+    max-width: 900px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.close-btn {
+    color: var(--color-text-dim);
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    font-size: 2.5rem;
+    font-weight: bold;
+    transition: color 0.3s;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: var(--color-danger);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 1.8rem;
+}
+
+.modal-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+    margin: 15px 0;
+}
+
+/* Footer */
+footer {
+    background-color: var(--color-container);
+    border-top: 1px solid var(--color-border);
+    text-align: center;
+    padding: 15px;
+    font-size: 0.85rem;
+    color: var(--color-text-dim);
+    width: 100%;
+}
+
+footer p {
+    margin: 2px 0;
+}
+
+/* Media Queries untuk Responsivitas */
+@media (max-width: 900px) {
+    .container {
+        flex-direction: column;
+    }
+    .panel-container {
+        width: 100%;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--color-border);
+    }
+    .main-content {
+        height: auto;
+    }
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .modal-content {
+        width: 95%;
+        margin: 5% auto;
+        padding: 20px;
+    }
+    .modal-nav {
+        flex-wrap: wrap;
+    }
+    .modal-button {
+        flex-basis: 48%; /* 2 tombol per baris */
+    }
+}
+
+/* ============================================= */
+/* Tambahan untuk Fitur Toggle PID (BARU)        */
+/* ============================================= */
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    background-color: var(--color-bg);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--color-border);
+}
+
+.checkbox-group label {
+    margin-bottom: 0;
+    font-weight: bold;
+    color: var(--color-secondary);
+    cursor: pointer;
+}
+
+#pid-enable {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+/* Style untuk panel PID saat nonaktif */
+#pid-parameters.disabled {
+    opacity: 0.4;
+    pointer-events: none; /* Mencegah klik dan interaksi */
+    transition: opacity 0.3s;
+}
+
+#plot-container {
+    min-height: 450px; /* Plot utama */
+}
+
+/* Plot kedua untuk sinyal kendali */
+#plot-control-container {
+    min-height: 250px; /* Lebih pendek dari plot utama */
+    margin-top: 25px;  /* Memberi jarak */
+    border-top: 1px solid var(--color-border); /* Garis pemisah */
+    padding-top: 20px;
+}
