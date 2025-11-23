@@ -1,27 +1,23 @@
 document.addEventListener("DOMContentLoaded", () => {
-    // =========================================================
-    // Bagian 1: Referensi Elemen DOM
-    // =========================================================
     const elements = {
-        // Input Parameter Fisis
         Ra: document.getElementById('Ra'),
         La: document.getElementById('La'),
         Kt: document.getElementById('Kt'),
         Kb: document.getElementById('Kb'),
         J: document.getElementById('J'),
         b: document.getElementById('b'),
-        // Tampilan Parameter Fisis
+
         RaValue: document.getElementById('Ra-value'),
         LaValue: document.getElementById('La-value'),
         KtValue: document.getElementById('Kt-value'),
         KbValue: document.getElementById('Kb-value'),
         JValue: document.getElementById('J-value'),
         bValue: document.getElementById('b-value'),
-        // Tampilan Parameter Turunan
+        
         derivedK: document.getElementById('derived-K'),
         derivedOmega: document.getElementById('derived-omega'),
         derivedZeta: document.getElementById('derived-zeta'),
-        // Input Kontroler & Sistem
+        
         plantType: document.getElementById('plant-type'),
         setpoint: document.getElementById('setpoint'),
         setpointUnit: document.getElementById('setpoint-unit'),
@@ -32,81 +28,75 @@ document.addEventListener("DOMContentLoaded", () => {
         KiValue: document.getElementById('Ki-value'),
         KdValue: document.getElementById('Kd-value'),
 
-        // Tampilan Analisis Performa Transien
         valTr: document.getElementById('val-tr'),
         valTs: document.getElementById('val-ts'),
         valOs: document.getElementById('val-os'),
         valEss: document.getElementById('val-ess'),
+
+        valPoles: document.getElementById('val-poles'),
+        valStatusCl: document.getElementById('val-status-cl'),
+        toggleStability: document.getElementById('toggle-stability'),
+        stabilitySection: document.getElementById('stability-section'),
         
-        // Elemen BARU untuk toggle PID
         pidEnable: document.getElementById('pid-enable'),
         pidParameters: document.getElementById('pid-parameters'),
         setpointLabel: document.querySelector('label[for="setpoint"]'),
         toggleTfButton: document.getElementById('toggle-tf'),
 
-        // Input Realistis
         Kf: document.getElementById('Kf'),
         KfValue: document.getElementById('Kf-value'),
         Vmax: document.getElementById('Vmax'),
         VmaxValue: document.getElementById('Vmax-value'),
-        // Input Simulasi
+
         tSim: document.getElementById('t-sim'),
         dtSim: document.getElementById('dt-sim'),
         runButton: document.getElementById('run-button'),
-        // Kontainer Konten
+
         plotContainer: document.getElementById('plot-container'),
         plotControlContainer: document.getElementById('plot-control-container'),
         animationContainer: document.getElementById('animation-container'),
         motorCanvas: document.getElementById('motor-canvas'),
         tfContainer: document.getElementById('transfer-function'),
         analysisContainer: document.getElementById('analysis-container'),
-        // Tombol Toggle
+
         toggleAnimation: document.getElementById('toggle-animation'),
-        // toggleTf sudah ada di atas
         toggleAnalysis: document.getElementById('toggle-analysis'),
-        // Modal & Tombol Modal
+
         modalButtons: document.querySelectorAll('.modal-button'),
         closeButtons: document.querySelectorAll('.close-btn'),
     };
 
-    // Variabel state global
     let plotlyLayout = {};
-    let currentSimulationData = {}; // Menyimpan data simulasi terakhir
+    let currentSimulationData = {};
     
-    // Palet Warna (JavaScript)
     const colorPrimary = 'rgb(0, 170, 255)';
     const colorSecondary = 'rgb(0, 199, 255)';
     const colorDanger = 'rgb(255, 77, 77)';
-    const colorWarn = 'rgb(255, 165, 0)'; // Oranye untuk kontras
+    const colorWarn = 'rgb(255, 165, 0)';
     const colorGrid = 'rgba(74, 74, 74, 0.5)';
     const colorText = '#d4d4d4';
     const fontMain = "'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif";
     const fontMono = "'Consolas', 'Menlo', 'Courier New', monospace";
 
-    // =========================================================
-    // Bagian 2: Setup Event Listeners
-    // =========================================================
-
-    // Fungsi helper BARU untuk update label setpoint
     function updateSetpointLabel() {
         const isPID = elements.pidEnable.checked;
         if (isPID) {
             const unit = elements.plantType.value === '1' ? 'rad/s' : 'rad';
             elements.setpointUnit.textContent = unit;
             elements.setpointLabel.textContent = 'Setpoint:';
-        } else {
+        }
+        else {
             elements.setpointUnit.textContent = 'Volt';
             elements.setpointLabel.textContent = 'Tegangan Masukan (V):';
         }
     }
 
     function setupEventListeners() {
-        // Listener Real-time untuk semua slider
         const physicalSliders = ['Ra', 'La', 'Kt', 'Kb', 'J', 'b'];
         physicalSliders.forEach(id => {
             elements[id].addEventListener('input', () => {
                 elements[`${id}Value`].textContent = parseFloat(elements[id].value).toPrecision(3);
-                updateSimulator(true); // Update plot & TF
+                updateSimulator(true);
             });
         });
 
@@ -114,46 +104,54 @@ document.addEventListener("DOMContentLoaded", () => {
         controlSliders.forEach(id => {
             elements[id].addEventListener('input', () => {
                 elements[`${id}Value`].textContent = elements[id].value;
-                updateSimulator(true); // Update plot & TF
+                updateSimulator(true);
             });
         });
 
-        // Listener BARU untuk checkbox PID
         elements.pidEnable.addEventListener('change', () => {
             const isPIDEnabled = elements.pidEnable.checked;
             if (isPIDEnabled) {
                 elements.pidParameters.classList.remove('disabled');
-            } else {
+            }
+            else {
                 elements.pidParameters.classList.add('disabled');
             }
-            updateSetpointLabel(); // Update label
-            updateSimulator(true); // Re-run simulasi & update TF
+            updateSetpointLabel();
+            updateSimulator(true);
         });
 
-        // Listener Real-time untuk input & select
         elements.plantType.addEventListener('change', () => {
-            updateSetpointLabel(); // Update unit (rad/s atau rad)
-            updateSimulator(true); // Update plot & TF
+            updateSetpointLabel();
+            updateSimulator(true);
         });
         
         elements.setpoint.addEventListener('input', () => updateSimulator(true));
         elements.tSim.addEventListener('input', () => updateSimulator(true));
         elements.dtSim.addEventListener('input', () => updateSimulator(true));
 
-
-        // Tombol Run sekarang HANYA menjalankan animasi
         elements.runButton.addEventListener('click', () => {
             if (currentSimulationData.t) {
                 animateMotor(currentSimulationData);
             }
         });
 
-        // Tombol Toggle Konten
         elements.toggleAnimation.addEventListener('click', toggleVisibility);
         elements.toggleTfButton.addEventListener('click', toggleVisibility);
         elements.toggleAnalysis.addEventListener('click', toggleVisibility);
 
-        // Event Listeners untuk Modal
+        if (elements.toggleStability) {
+            elements.toggleStability.addEventListener('click', (e) => {
+                const btn = e.currentTarget;
+                btn.classList.toggle('active');
+                if (btn.classList.contains('active')) {
+                    elements.stabilitySection.style.display = 'block';
+                }
+                else {
+                    elements.stabilitySection.style.display = 'none';
+                }
+            });
+        }
+
         elements.modalButtons.forEach(button => {
             button.addEventListener('click', () => {
                 const modalId = button.getAttribute('data-modal');
@@ -175,104 +173,37 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // =========================================================
-    // [BARU] ENGINE FISIKA: Runge-Kutta Orde 4 (RK4)
-    // =========================================================
-    // State Vector: [Arus (i), Kecepatan (w), Posisi (theta)]
-    function getModelDerivatives(state, voltage, params) {
-        const i = state[0];
-        const w = state[1];
-        
-        // 1. Turunan Arus: di/dt = (V - Ra*i - Kb*w) / La
-        const di_dt = (voltage - (params.Ra * i) - (params.Kb * w)) / params.La;
-        
-        // 2. Turunan Kecepatan: dw/dt = (Kt*i - b*w) / J
-        const dw_dt = ((params.Kt * i) - (params.b * w)) / params.J;
-        
-        // 3. Turunan Posisi: dtheta/dt = w
-        const dtheta_dt = w;
-
-        return [di_dt, dw_dt, dtheta_dt];
-    }
-
-    function solveRK4(currentState, voltage, dt, params) {
-        // k1
-        const k1 = getModelDerivatives(currentState, voltage, params);
-        
-        // k2
-        const stateK2 = [
-            currentState[0] + 0.5 * dt * k1[0],
-            currentState[1] + 0.5 * dt * k1[1],
-            currentState[2] + 0.5 * dt * k1[2]
-        ];
-        const k2 = getModelDerivatives(stateK2, voltage, params);
-
-        // k3
-        const stateK3 = [
-            currentState[0] + 0.5 * dt * k2[0],
-            currentState[1] + 0.5 * dt * k2[1],
-            currentState[2] + 0.5 * dt * k2[2]
-        ];
-        const k3 = getModelDerivatives(stateK3, voltage, params);
-
-        // k4
-        const stateK4 = [
-            currentState[0] + dt * k3[0],
-            currentState[1] + dt * k3[1],
-            currentState[2] + dt * k3[2]
-        ];
-        const k4 = getModelDerivatives(stateK4, voltage, params);
-
-        // Hitung rata-rata terbobot untuk update state
-        return [
-            currentState[0] + (dt / 6.0) * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0]),
-            currentState[1] + (dt / 6.0) * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1]),
-            currentState[2] + (dt / 6.0) * (k1[2] + 2*k2[2] + 2*k3[2] + k4[2])
-        ];
-    }
-
-    // =========================================================
-    // [BARU] LOGIKA KALKULASI RESPON TRANSIEN
-    // =========================================================
     function calculateTransientMetrics(time, output, setpoint) {
         if (!output || output.length === 0 || setpoint === 0) {
             return { tr: 0, ts: 0, os: 0, ess: 0 };
         }
 
-        const finalValue = output[output.length - 1];
-        
-        // 1. Steady State Error (Ess)
+        const finalValue = output[output.length - 1];    
         const ess = setpoint - finalValue;
-
-        // 2. Overshoot (%OS)
-        // Cari nilai maksimum (atau minimum jika setpoint negatif)
         let peak = 0;
+        
         if (setpoint > 0) {
             peak = Math.max(...output);
-        } else {
+        }
+        else {
             peak = Math.min(...output);
         }
 
         let os = 0;
-        // Hitung %OS hanya jika ada lonjakan melewati final value
         if (Math.abs(peak) > Math.abs(finalValue)) {
             os = Math.abs((peak - finalValue) / finalValue) * 100;
         }
 
-        // 3. Rise Time (Tr) - Waktu dari 10% ke 90% Final Value
         let t10 = null, t90 = null;
         const target10 = finalValue * 0.1;
         const target90 = finalValue * 0.9;
 
-        // Scan array
         for (let i = 0; i < output.length; i++) {
             const val = output[i];
-            // Logika untuk setpoint positif
             if (setpoint > 0) {
                 if (t10 === null && val >= target10) t10 = time[i];
                 if (t90 === null && val >= target90) t90 = time[i];
             } 
-            // Logika untuk setpoint negatif
             else {
                 if (t10 === null && val <= target10) t10 = time[i];
                 if (t90 === null && val <= target90) t90 = time[i];
@@ -280,13 +211,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const tr = (t10 !== null && t90 !== null) ? Math.abs(t90 - t10) : 0;
 
-        // 4. Settling Time (Ts) - Kriteria 2%
         const tolerance = 0.02; 
         const upperBand = finalValue * (1 + tolerance);
         const lowerBand = finalValue * (1 - tolerance);
         let ts = 0;
 
-        // Cari waktu terakhir data berada DI LUAR pita toleransi
         for (let i = time.length - 1; i >= 0; i--) {
             const val = output[i];
             if (setpoint > 0) {
@@ -294,8 +223,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     ts = time[i];
                     break; 
                 }
-            } else {
-                // Logic pita toleransi untuk nilai negatif bisa tricky, gunakan abs
+            }
+            else {
                 if (Math.abs(val - finalValue) > Math.abs(finalValue * tolerance)) {
                     ts = time[i];
                     break;
@@ -306,73 +235,207 @@ document.addEventListener("DOMContentLoaded", () => {
         return { tr, ts, os, ess };
     }
 
-    // =========================================================
-    // Bagian 3: Logika Inti Simulator
-    // =========================================================
+    const C = {
+        add: (a, b) => ({ re: a.re + b.re, im: a.im + b.im }),
+        sub: (a, b) => ({ re: a.re - b.re, im: a.im - b.im }),
+        mul: (a, b) => ({ re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re }),
+        div: (a, b) => {
+            const denom = b.re * b.re + b.im * b.im;
+            return {
+                re: (a.re * b.re + a.im * b.im) / denom,
+                im: (a.im * b.re - a.re * b.im) / denom
+            };
+        },
+        mag: (a) => Math.sqrt(a.re * a.re + a.im * a.im)
+    };
+
+    function findRoots(coeffs) {
+        const n = coeffs.length - 1;
+        const normCoeffs = coeffs.map(c => ({ re: c / coeffs[0], im: 0 }));
+        
+        let roots = [];
+        const radius = 0.4 + 0.9;
+        for (let i = 0; i < n; i++) {
+            const angle = (2 * Math.PI * i) / n;
+            roots.push({
+                re: Math.pow(0.4, i) * Math.cos(angle),
+                im: Math.pow(0.9, i) * Math.sin(angle)
+            });
+        }
+
+        const maxIter = 50;
+        for (let iter = 0; iter < maxIter; iter++) {
+            let maxDelta = 0;
+            for (let i = 0; i < n; i++) {
+                let pVal = normCoeffs[0];
+                for (let j = 1; j <= n; j++) {
+                    pVal = C.add(C.mul(pVal, roots[i]), normCoeffs[j]);
+                }
+
+                let prod = { re: 1, im: 0 };
+                for (let j = 0; j < n; j++) {
+                    if (i !== j) {
+                        prod = C.mul(prod, C.sub(roots[i], roots[j]));
+                    }
+                }
+
+                const delta = C.div(pVal, prod);
+                roots[i] = C.sub(roots[i], delta);
+                
+                const mag = C.mag(delta);
+                if (mag > maxDelta) maxDelta = mag;
+            }
+            if (maxDelta < 1e-6) break;
+        }
+        return roots;
+    }
     
-    // Fungsi utama yang menjalankan update
+    function updateStability(params) {
+        if (!elements.valPoles) return;
+
+        const { Ra, La, Kt, Kb, J, b, Kp, Ki, Kd, Kf, plantType, isPIDEnabled } = params;
+
+        if (elements.toggleStability) {
+            const modeText = isPIDEnabled ? "(Closed Loop)" : "(Open Loop)";
+            elements.toggleStability.textContent = `Analisis Kestabilan ${modeText}`;
+        }
+
+        const p_s2 = La * J;
+        const p_s1 = Ra * J + La * b;
+        const p_s0 = Ra * b + Kt * Kb;
+        
+        let coeffs = [];
+
+        if (isPIDEnabled) {
+            if (plantType === '1') {
+                const a3 = p_s2;
+                const a2 = p_s1 + (Kt * Kf * Kd);
+                const a1 = p_s0 + (Kt * Kf * Kp);
+                const a0 = Kt * Kf * Ki;
+                coeffs = [a3, a2, a1, a0];
+            }
+            else {
+                const a4 = p_s2;
+                const a3 = p_s1;
+                const a2 = p_s0 + (Kt * Kf * Kd);
+                const a1 = Kt * Kf * Kp;
+                const a0 = Kt * Kf * Ki;
+                coeffs = [a4, a3, a2, a1, a0];
+            }
+        }
+        else {
+            if (plantType === '1') {
+                coeffs = [p_s2, p_s1, p_s0];
+            }
+            else {
+                coeffs = [p_s2, p_s1, p_s0, 0];
+            }
+        }
+
+        const roots = findRoots(coeffs);
+
+        let polesHtml = '';
+        let isUnstable = false;
+        let isMarginal = false;
+
+        roots.sort((a, b) => b.re - a.re);
+
+        roots.forEach((root, index) => {
+            const re = root.re;
+            const im = root.im;
+            
+            if (re > 1e-5) isUnstable = true;          
+            else if (Math.abs(re) <= 1e-5) isMarginal = true; 
+
+            let valStr = '';
+            const reStr = Math.abs(re) < 1e-5 ? '0' : re.toFixed(4);
+            const imAbsStr = Math.abs(im).toFixed(4);
+
+            if (Math.abs(im) < 1e-5) {
+                valStr = `<span style="color: var(--color-info);">${reStr}</span>`;
+            }
+            else {
+                const sign = im >= 0 ? '+' : '-';
+                valStr = `<span style="color: var(--color-info);">${reStr}</span> <span style="color: rgb(255, 165, 0); margin-left:2px;"> ${sign} j${imAbsStr}</span>`;
+            }
+
+            polesHtml += `
+                <div style="margin-bottom: 6px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 2px; display: flex; justify-content: space-between;">
+                    <span style="color: var(--color-text-dim);"><strong>s<sub>${index+1}</sub></strong> = </span>
+                    <span style="font-family: var(--font-mono);">${valStr}</span>
+                </div>`;
+        });
+
+        elements.valPoles.innerHTML = polesHtml;
+
+        if (isUnstable) {
+            elements.valStatusCl.textContent = "TIDAK STABIL";
+            elements.valStatusCl.style.color = "rgb(255, 77, 77)";
+        }
+        else if (isMarginal) {
+            elements.valStatusCl.textContent = "MARGINAL / KRITIS";
+            elements.valStatusCl.style.color = "rgb(255, 200, 0)";
+        }
+        else {
+            elements.valStatusCl.textContent = "STABIL";
+            elements.valStatusCl.style.color = "rgb(0, 255, 128)";
+        }
+    }
+
     function updateSimulator(runSimulation) {
         const params = readParameters();
         
         if (runSimulation) {
-            // Simpan data simulasi ke variabel global
             currentSimulationData = simulateSystem(params);
             plotResponse(currentSimulationData, params);
             updateAnalysis(currentSimulationData, params);
+            updateStability(params);
         }
         
-        updateDerivedParameters(); // Update parameter open-loop
-        updateTransferFunction(); // Update TF (open/closed loop)
+        updateDerivedParameters();
+        updateTransferFunction();
     }
 
-    // Membaca semua parameter dari UI
     function readParameters() {
         return {
-            // Fisis
             Ra: parseFloat(elements.Ra.value),
             La: parseFloat(elements.La.value),
             Kt: parseFloat(elements.Kt.value),
             Kb: parseFloat(elements.Kb.value),
             J: parseFloat(elements.J.value),
             b: parseFloat(elements.b.value),
-            // Kontroler
+            
             Kp: parseFloat(elements.Kp.value),
             Ki: parseFloat(elements.Ki.value),
             Kd: parseFloat(elements.Kd.value),
-            // Sistem
-            plantType: elements.plantType.value, // '1' = Speed, '2' = Position
+            
+            plantType: elements.plantType.value,
             setpoint: parseFloat(elements.setpoint.value),
-            // Realistis
+            
             Kf: parseFloat(elements.Kf.value),
             Vmax: parseFloat(elements.Vmax.value),
-            // Simulasi
-            tSim: Math.max(0.1, parseFloat(elements.tSim.value)), // Pastikan tSim > 0
-            dt: Math.max(0.0001, parseFloat(elements.dtSim.value) / 1000), // Konversi ms ke detik, min 0.1ms
             
-            // Parameter BARU
+            tSim: Math.max(0.1, parseFloat(elements.tSim.value)),
+            dt: Math.max(0.0001, parseFloat(elements.dtSim.value) / 1000),
+            
             isPIDEnabled: elements.pidEnable.checked
         };
     }
 
-    // Simulasi sistem (DIPERBARUI)
     function simulateSystem(params) {
         const { Ra, La, Kt, Kb, J, b, Kp, Ki, Kd, Kf, Vmax, setpoint, plantType, tSim, dt, isPIDEnabled } = params;
 
-        // Waktu simulasi
         const nSteps = Math.floor(tSim / dt);
         const t = Array(nSteps).fill(0).map((_, i) => i * dt);
 
-        // State variables [x1, x2, x3] = [posisi (theta), kecepatan (omega), arus (Ia)]
-        const x1 = new Array(nSteps).fill(0); // Posisi
-        const x2 = new Array(nSteps).fill(0); // Kecepatan
-        const x3 = new Array(nSteps).fill(0); // Arus
+        const x1 = new Array(nSteps).fill(0);
+        const x2 = new Array(nSteps).fill(0);
+        const x3 = new Array(nSteps).fill(0);
 
-        // Variabel output
-        const y = new Array(nSteps).fill(0); // Output (tergantung plantType)
-        const u_unclamped = new Array(nSteps).fill(0); // Sinyal kendali (belum saturasi)
-        const u_clamped = new Array(nSteps).fill(0); // Sinyal kendali (setelah saturasi)
+        const y = new Array(nSteps).fill(0);
+        const u_unclamped = new Array(nSteps).fill(0);
+        const u_clamped = new Array(nSteps).fill(0);
 
-        // Variabel state kontroler PID
         let integralTerm = 0;
         let prevPV = 0;
 
@@ -380,11 +443,8 @@ document.addEventListener("DOMContentLoaded", () => {
             let clampedVoltage = 0;
 
             if (isPIDEnabled) {
-                // LOGIKA CLOSED-LOOP (PID)
-                // 1. Tentukan Process Variable (PV)
                 const pv = (plantType === '1') ? x2[i-1] : x1[i-1];
                 
-                // 2. Hitung Sinyal Kendali (u)
                 const feedback = pv * Kf;
                 const error = setpoint - feedback;
                 const proportionalTerm = Kp * error;
@@ -393,57 +453,43 @@ document.addEventListener("DOMContentLoaded", () => {
                 const voltage = proportionalTerm + integralTerm + derivativeTerm;
                 u_unclamped[i] = voltage;
 
-                // 3. Terapkan Saturasi
                 clampedVoltage = voltage;
                 if (clampedVoltage > Vmax) clampedVoltage = Vmax;
                 if (clampedVoltage < -Vmax) clampedVoltage = -Vmax;
                 
-                // 4. Terapkan Anti-Windup
                 const isSaturated = (voltage >= Vmax && error > 0) || (voltage <= -Vmax && error < 0);
                 if (!isSaturated) {
                     integralTerm += Ki * error * dt;
                 }
                 prevPV = pv;
-            } else {
-                // LOGIKA OPEN-LOOP (BARU)
-                // "setpoint" kini berarti "Tegangan Masukan"
+            } 
+            else {
                 u_unclamped[i] = setpoint;
                 clampedVoltage = setpoint;
-                // Terapkan saturasi juga untuk open-loop
                 if (clampedVoltage > Vmax) clampedVoltage = Vmax;
                 if (clampedVoltage < -Vmax) clampedVoltage = -Vmax;
             }
             u_clamped[i] = clampedVoltage;
 
-            // 5. Hitung turunan state (state-space model) - SAMA UNTUK KEDUANYA
             const x1_dot = x2[i-1];
             const x2_dot = (Kt * x3[i-1] - b * x2[i-1]) / J;
             const x3_dot = (clampedVoltage - Ra * x3[i-1] - Kb * x2[i-1]) / La;
 
-            // 6. Integrasi Euler
             x1[i] = x1[i-1] + x1_dot * dt;
             x2[i] = x2[i-1] + x2_dot * dt;
             x3[i] = x3[i-1] + x3_dot * dt;
             
-            // 7. Simpan output
             y[i] = (plantType === '1') ? x2[i] : x1[i];
         }
 
         return { t, y, u_unclamped, u_clamped };
     }
 
-    // =========================================================
-    // Bagian 4: Update UI (Plot, Analisis, TF, Animasi)
-    // =========================================================
-
-    // Update Plotly (DIPERBARUI)
     function plotResponse(data, params) {
         const { t, y, u_unclamped, u_clamped } = data;
         const { setpoint, plantType, Vmax, isPIDEnabled } = params;
 
         const yAxisTitle = plantType === '1' ? 'Kecepatan (rad/s)' : 'Posisi (rad)';
-
-        // === PLOT 1: RESPONS SISTEM ===
         
         const setpointTrace = {
             x: t,
@@ -452,6 +498,7 @@ document.addEventListener("DOMContentLoaded", () => {
             name: 'Setpoint',
             line: { color: colorDanger, dash: 'dash' }
         };
+
         const responseTrace = {
             x: t,
             y: y,
@@ -462,7 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const tracesToPlot = [responseTrace];
         if (isPIDEnabled) {
-            tracesToPlot.unshift(setpointTrace); // Tambahkan setpoint jika PID aktif
+            tracesToPlot.unshift(setpointTrace);
         }
 
         const plotlyLayoutResponse = {
@@ -480,7 +527,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 gridcolor: colorGrid,
                 zerolinecolor: colorPrimary,
             },
-            // yaxis2 dihapus
             legend: {
                 orientation: 'h',
                 y: -0.2,
@@ -489,15 +535,12 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        // === PLOT 2: SINYAL KENDALI ===
-
         const controlSignalTrace = {
             x: t,
             y: u_clamped,
             mode: 'lines',
             name: 'Sinyal Kendali (U)',
             line: { color: colorWarn, width: 2 },
-            // yaxis: 'y2' dihapus
         };
         const controlSignalUnclampedTrace = {
             x: t,
@@ -505,7 +548,6 @@ document.addEventListener("DOMContentLoaded", () => {
             mode: 'lines',
             name: 'Sinyal Kendali (Ideal)',
             line: { color: colorSecondary, width: 2, dash: 'dot' },
-            // yaxis: 'y2' dihapus
             visible: 'legendonly'
         };
         const VmaxTrace = {
@@ -514,7 +556,6 @@ document.addEventListener("DOMContentLoaded", () => {
             mode: 'lines',
             name: 'Vmax',
             line: { color: colorDanger, dash: 'dashdot' },
-            // yaxis: 'y2' dihapus
             visible: 'legendonly'
         };
         
@@ -534,7 +575,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 title: 'Tegangan (V)',
                 gridcolor: colorGrid,
                 zerolinecolor: colorWarn,
-                range: [-Vmax * 1.5, Vmax * 1.5] // Pertahankan range
+                range: [-Vmax * 1.5, Vmax * 1.5]
             },
             legend: {
                 orientation: 'h',
@@ -544,12 +585,10 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         };
 
-        // === PANGGIL PLOTLY 2 KALI ===
         Plotly.newPlot(elements.plotContainer, tracesToPlot, plotlyLayoutResponse, { responsive: true });
         Plotly.newPlot(elements.plotControlContainer, controlTraces, plotlyLayoutControl, { responsive: true });
     }
 
-    // Update parameter turunan (gain, wn, zeta) - INI TETAP OPEN LOOP
     function updateDerivedParameters() {
         const p = readParameters();
         const den_s2 = p.La * p.J;
@@ -571,7 +610,6 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.derivedZeta.textContent = zeta.toPrecision(3);
     }
 
-    // Helper function untuk memformat polinomial TF
     function tfPoly(...terms) {
         let s = '';
         for (let i = 0; i < terms.length; i++) {
@@ -579,16 +617,18 @@ document.addEventListener("DOMContentLoaded", () => {
             if (val === 0) continue;
             
             let sign = (val > 0) ? ' + ' : ' - ';
-            if (s === '' && val > 0) sign = ''; // Hapus tanda + di awal
+            if (s === '' && val > 0) sign = '';
             
             let num = Math.abs(val);
             let term = '';
             
             if (num === 1 && power) {
                 term = power;
-            } else if (power) {
+            }
+            else if (power) {
                 term = `${num.toExponential(2)} ${power}`;
-            } else {
+            }
+            else {
                 term = `${num.toExponential(2)}`;
             }
             s += `${sign}${term}`;
@@ -596,12 +636,10 @@ document.addEventListener("DOMContentLoaded", () => {
         return s || '0';
     }
 
-    // Update tampilan Fungsi Alih (DIPERBARUI)
     function updateTransferFunction() {
         const p = readParameters();
         const { Ra, La, Kt, Kb, J, b, Kp, Ki, Kd, Kf, isPIDEnabled, plantType } = p;
 
-        // Parameter Plant (Open-Loop)
         const plant_s2 = La * J;
         const plant_s1 = Ra * J + La * b;
         const plant_s0 = Ra * b + Kt * Kb;
@@ -611,7 +649,6 @@ document.addEventListener("DOMContentLoaded", () => {
         let title = '';
 
         if (isPIDEnabled) {
-            // LOGIKA CLOSED-LOOP
             title = 'Fungsi Alih Sistem <strong>Closed-Loop</strong>: $T(s) = Y(s)/R(s)$';
             elements.toggleTfButton.textContent = 'Fungsi Alih Sistem (Closed Loop)';
             
@@ -627,14 +664,15 @@ document.addEventListener("DOMContentLoaded", () => {
             );
             
             let denStr = '';
-            if (plantType === '1') { // Kecepatan
+            if (plantType === '1') {
                 denStr = tfPoly(
                     [plant_s2, 's^3'],
                     [plant_s1 + (C_num_s2 * plant_num * H), 's^2'],
                     [plant_s0 + (C_num_s1 * plant_num * H), 's'],
                     [C_num_s0 * plant_num * H, '']
                 );
-            } else { // Posisi
+            }
+            else {
                 denStr = tfPoly(
                     [plant_s2, 's^4'],
                     [plant_s1, 's^3'],
@@ -645,8 +683,8 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             htmlContent = `<p>${title}</p>$$ T(s) = \\frac{${numStr || '0'}}{${denStr || '1'}} $$`;
 
-        } else {
-            // LOGIKA OPEN-LOOP (BARU)
+        }
+        else {
             title = 'Fungsi Alih Sistem <strong>Open-Loop</strong>:';
             elements.toggleTfButton.textContent = 'Fungsi Alih Sistem (Open Loop)';
 
@@ -657,9 +695,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 [plant_s0, '']
             );
 
-            if (plantType === '1') { // Kecepatan
+            if (plantType === '1') {
                 htmlContent = `<p>${title}</p>$$ G_\\omega(s) = \\frac{\\omega(s)}{V(s)} = \\frac{${numStr}}{${denStr}} $$`;
-            } else { // Posisi
+            }
+            else {
                 htmlContent = `<p>${title}</p>$$ G_p(s) = \\frac{\\theta(s)}{V(s)} = \\frac{${numStr}}{s(${denStr})} $$`;
             }
         }
@@ -668,7 +707,6 @@ document.addEventListener("DOMContentLoaded", () => {
         MathJax.typesetPromise([elements.tfContainer]);
     }
 
-    // Update Analisis Lanjutan (DIPERBARUI)
     function updateAnalysis(data, params) {
         const { y } = data;
         const { setpoint, plantType, isPIDEnabled, Vmax } = params;
@@ -689,7 +727,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (elements.valEss) elements.valEss.textContent = '-';
 
         if (isPIDEnabled) {
-            // ANALISIS CLOSED-LOOP
             const maxVal = Math.max(...y);
             const error_ss = metrics.ess.toFixed(4);
             const overshoot = metrics.os.toFixed(2);
@@ -697,38 +734,43 @@ document.addEventListener("DOMContentLoaded", () => {
 
             if (Math.abs(lastVal) > Math.abs(setpoint) * 100 || isNaN(lastVal)) {
                 analysisHTML += `<li style="color: ${colorDanger}"><strong>Sistem Tidak Stabil!</strong> Respons divergen terdeteksi. Periksa parameter PID Anda.</li>`;
-            } else {
+            }
+            else {
                 if (Math.abs(error_ss / setpoint) > 0.01) {
                     analysisHTML += `<li>Terdeteksi <strong>Error Steady-State</strong> sebesar <strong>${error_ss}</strong>.`;
                     if (params.Ki === 0) {
                         analysisHTML += ` Ini wajar untuk kontroler P atau PD-only. <i>Saran: Aktifkan komponen Integral ($K_i$).</i></li>`;
-                    } else {
+                    }
+                    else {
                         analysisHTML += ` <i>Error masih ada. Ini bisa jadi karena Integral Windup atau $K_i$ terlalu kecil.</i></li>`;
                     }
-                } else {
+                }
+                else {
                     analysisHTML += `<li><strong>Error Steady-State Minimal.</strong> Sistem berhasil mencapai setpoint.</li>`;
                 }
 
                 if (overshoot > 20) {
                     analysisHTML += `<li style="color: ${colorWarn}"><strong>Overshoot Signifikan</strong> (<strong>${overshoot}%</strong>) terdeteksi. Sistem terlalu 'agresif'.`;
                     analysisHTML += ` <i>Saran: Kurangi $K_p$ atau perbesar $K_d$.</i></li>`;
-                } else if (overshoot > 1) {
+                }
+                else if (overshoot > 1) {
                     analysisHTML += `<li><strong>Overshoot Wajar</strong> (<strong>${overshoot}%</strong>) terdeteksi.</li>`;
-                } else {
+                }
+                else {
                     analysisHTML += `<li><strong>Tidak ada Overshoot.</strong> Sistem <i>critically damped</i> atau <i>overdamped</i>.</li>`;
                 }
             }
-        } else {
-            // ANALISIS OPEN-LOOP (BARU)
+        }
+        else {
             analysisHTML += `<li>Mode <strong>Open-Loop</strong> aktif. Sistem diberikan tegangan masukan konstan <strong>${setpoint} V</strong> (setelah dibatasi $V_{max}$).</li>`;
-            if (plantType === '1') { // Kecepatan
+            if (plantType === '1') {
                 analysisHTML += `<li>Kecepatan final sistem stabil di <strong>${lastVal.toPrecision(3)} rad/s</strong>.</li>`;
-            } else { // Posisi
+            }
+            else {
                 analysisHTML += `<li>Posisi sistem terus meningkat (integral dari kecepatan) dan mencapai <strong>${lastVal.toPrecision(3)} rad</strong> di akhir simulasi.</li>`;
             }
         }
 
-        // Analisis Saturasi (berlaku untuk keduanya)
         const isSaturated = data.u_clamped.some((u, i) => Math.abs(u) >= Vmax);
         if (isSaturated) {
             analysisHTML += `<li><strong>Saturasi Aktuator Terdeteksi.</strong> Sinyal kendali (tegangan) mencapai batas <strong>${Vmax} V</strong>. Ini membatasi kecepatan respons sistem.</li>`;
@@ -739,7 +781,6 @@ document.addEventListener("DOMContentLoaded", () => {
         MathJax.typesetPromise([elements.analysisContainer]);
     }
 
-    // Animasi Motor
     function animateMotor(data) {
         const { y, t } = data;
         const canvas = elements.motorCanvas;
@@ -753,11 +794,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const centerY = height / 2 - 20;
         const radius = 50;
         let frame = 0;
-        let animationFrameId = null; // Untuk mengelola animasi
+        let animationFrameId = null;
 
         function drawFrame() {
             if (frame >= t.length) {
-                cancelAnimationFrame(animationFrameId); // Hentikan animasi
+                cancelAnimationFrame(animationFrameId);
                 return;
             }
             
@@ -769,7 +810,8 @@ document.addEventListener("DOMContentLoaded", () => {
                     integratedAngle += y[i] * dt_anim;
                 }
                 angle = integratedAngle;
-            } else {
+            }
+            else {
                 angle = y[frame];
             }
 
@@ -810,16 +852,12 @@ document.addEventListener("DOMContentLoaded", () => {
             animationFrameId = requestAnimationFrame(drawFrame);
         }
 
-        // Hentikan animasi sebelumnya jika ada
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
         }
-        drawFrame(); // Mulai animasi
+        drawFrame();
     }
 
-    // =========================================================
-    // Bagian 5: Fungsi Utilitas (Toggle, dll)
-    // =========================================================
     function toggleVisibility(event) {
         const button = event.currentTarget;
         let targetElement;
@@ -840,37 +878,34 @@ document.addEventListener("DOMContentLoaded", () => {
         if (button.classList.contains('active')) {
             targetElement.style.display = 'block'; 
             if (button.id === 'toggle-animation') targetElement.style.display = 'flex';
-        } else {
+        }
+        else {
             targetElement.style.display = 'none';
         }
     }
 
-    // =========================================================
-    // Bagian 6: Inisialisasi Awal (DIPERBARUI)
-    // =========================================================
     function initializeApp() {
-        // Sinkronkan nilai slider saat load
         const allSliders = document.querySelectorAll('.slider');
         allSliders.forEach(slider => {
             const valueSpan = document.getElementById(`${slider.id}-value`);
             if (valueSpan) {
                 if (['La', 'J', 'b'].includes(slider.id)) {
                      valueSpan.textContent = parseFloat(slider.value).toPrecision(3);
-                } else {
+                }
+                else {
                     valueSpan.textContent = slider.value;
                 }
             }
         });
         
-        // Cek status checkbox PID saat load
         if (elements.pidEnable.checked) {
             elements.pidParameters.classList.remove('disabled');
-        } else {
+        }
+        else {
             elements.pidParameters.classList.add('disabled');
         }
         
-        updateSetpointLabel(); // Panggil saat inisialisasi
-        
+        updateSetpointLabel();
         setupEventListeners();
         
         elements.tfContainer.style.display = 'none';
@@ -878,8 +913,8 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.analysisContainer.style.display = 'none';
         elements.toggleAnalysis.classList.remove('active');
 
-        updateSimulator(true); // Jalankan simulasi awal
+        updateSimulator(true);
     }
 
-    initializeApp(); // Jalankan aplikasi
+    initializeApp();
 });

@@ -1,4 +1,3 @@
-/* Skema Warna & Font (Dark Theme) */
 :root {
     --color-bg: #1e1e1e;
     --color-bg-panel: #2a2a2a;
@@ -16,7 +15,6 @@
     --font-title: 'Segoe UI Light', 'Roboto Light', Arial, sans-serif;
 }
 
-/* Reset & Tampilan Dasar */
 * {
     margin: 0;
     padding: 0;
@@ -81,7 +79,6 @@ code {
     font-size: 0.9rem;
 }
 
-/* Header */
 header {
     background-color: var(--color-container);
     padding: 15px 30px;
@@ -124,7 +121,6 @@ header h2 {
     font-family: var(--font-mono);
 }
 
-/* Layout Kontainer Utama */
 .container {
     display: flex;
     flex-grow: 1;
@@ -133,14 +129,13 @@ header h2 {
     margin: 0 auto;
 }
 
-/* Panel Kiri (Parameter) */
 .panel-container {
     width: 350px;
     min-width: 350px;
     background-color: var(--color-bg-panel);
     padding: 20px;
     overflow-y: auto;
-    height: calc(100vh - 97px); /* 100vh - header - footer */
+    height: calc(100vh - 97px);
     border-right: 1px solid var(--color-border);
 }
 
@@ -229,7 +224,6 @@ header h2 {
     font-weight: bold;
 }
 
-/* Panel Parameter Turunan */
 .derived-parameters .derived-group {
     display: flex;
     justify-content: space-between;
@@ -273,12 +267,11 @@ header h2 {
     transform: scale(0.98);
 }
 
-/* Konten Kanan (Simulator) */
 .main-content {
     flex-grow: 1;
     padding: 25px;
     overflow-y: auto;
-    height: calc(100vh - 97px); /* 100vh - header - footer */
+    height: calc(100vh - 97px);
 }
 
 .content-section {
@@ -321,7 +314,6 @@ header h2 {
     transform: rotate(180deg);
 }
 
-/* Navigasi Modal */
 .modal-nav {
     display: flex;
     gap: 10px;
@@ -346,18 +338,14 @@ header h2 {
     color: var(--color-bg);
 }
 
-/* Animasi & Plot */
-
-/* Ganti atau tambahkan styling untuk visual container */
 .animation-container {
     width: 100%;
-    height: 200px; /* Tambahkan tinggi agar ada ruang efek */
+    height: 200px;
     display: flex;
     justify-content: center;
     align-items: center;
     margin-bottom: 20px;
     padding: 10px;
-    /* Efek Futuristik/Elegance */
     background: radial-gradient(circle at center, #2a2a2a 0%, #1a1a1a 100%);
     border: 1px solid var(--color-primary);
     box-shadow: inset 0 0 10px rgba(0, 170, 255, 0.3), 0 0 5px var(--color-primary);
@@ -365,9 +353,9 @@ header h2 {
 }
 
 #motor-canvas {
-    background-color: transparent; /* Ubah canvas menjadi transparan agar background container terlihat */
+    background-color: transparent;
     border-radius: 5px;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3); /* Tambah glow pada canvas */
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
 }
 
 .plot-container {
@@ -375,7 +363,6 @@ header h2 {
     min-height: 450px;
 }
 
-/* Kontainer Analisis & TF */
 .tf-container, .analysis-container {
     font-size: 1.1rem;
     padding-top: 10px;
@@ -396,23 +383,22 @@ header h2 {
     margin-bottom: 10px;
 }
 
-/* Modal Styling */
 .modal {
-    display: none; /* Sembunyi secara default */
-    position: fixed; /* Tetap di layar */
-    z-index: 1000; /* Di atas segalanya */
+    display: none;
+    position: fixed;
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    overflow: auto; /* Scroll jika konten panjang */
-    background-color: rgba(0, 0, 0, 0.7); /* Latar belakang gelap transparan */
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
 }
 
 .modal-content {
     background-color: var(--color-bg-panel);
-    margin: 5% auto; /* 5% dari atas dan tengah horizontal */
+    margin: 5% auto;
     padding: 30px;
     border: 1px solid var(--color-border);
     width: 90%;
@@ -457,7 +443,6 @@ header h2 {
     margin: 15px 0;
 }
 
-/* Footer */
 footer {
     background-color: var(--color-container);
     border-top: 1px solid var(--color-border);
@@ -472,7 +457,6 @@ footer p {
     margin: 2px 0;
 }
 
-/* Media Queries untuk Responsivitas */
 @media (max-width: 900px) {
     .container {
         flex-direction: column;
@@ -500,13 +484,9 @@ footer p {
         flex-wrap: wrap;
     }
     .modal-button {
-        flex-basis: 48%; /* 2 tombol per baris */
+        flex-basis: 48%;
     }
 }
-
-/* ============================================= */
-/* Tambahan untuk Fitur Toggle PID (BARU)        */
-/* ============================================= */
 
 .checkbox-group {
     display: flex;
@@ -532,21 +512,19 @@ footer p {
     cursor: pointer;
 }
 
-/* Style untuk panel PID saat nonaktif */
 #pid-parameters.disabled {
     opacity: 0.4;
-    pointer-events: none; /* Mencegah klik dan interaksi */
+    pointer-events: none;
     transition: opacity 0.3s;
 }
 
 #plot-container {
-    min-height: 450px; /* Plot utama */
+    min-height: 450px;
 }
 
-/* Plot kedua untuk sinyal kendali */
 #plot-control-container {
-    min-height: 250px; /* Lebih pendek dari plot utama */
-    margin-top: 25px;  /* Memberi jarak */
-    border-top: 1px solid var(--color-border); /* Garis pemisah */
+    min-height: 250px;
+    margin-top: 25px;
+    border-top: 1px solid var(--color-border);
     padding-top: 20px;
 }
