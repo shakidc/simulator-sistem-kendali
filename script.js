@@ -1,3 +1,57 @@
+const C = {
+    add: (a, b) => ({ re: a.re + b.re, im: a.im + b.im }),
+    sub: (a, b) => ({ re: a.re - b.re, im: a.im - b.im }),
+    mul: (a, b) => ({ re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re }),
+    div: (a, b) => {
+        const denom = b.re * b.re + b.im * b.im;
+        return {
+            re: (a.re * b.re + a.im * b.im) / denom,
+            im: (a.im * b.re - a.re * b.im) / denom
+        };
+    },
+    mag: (z) => Math.sqrt(z.re * z.re + z.im * z.im),
+    phase: (z) => Math.atan2(z.im, z.re)
+};
+
+function findRoots(coeffs) {
+    const n = coeffs.length - 1;
+    if (n < 1) return [];
+    
+    const normCoeffs = coeffs.map(c => ({ re: c / coeffs[0], im: 0 }));
+    
+    let roots = [];
+    for (let i = 0; i < n; i++) {
+        const angle = (Math.PI * 2 * i) / n;
+        roots.push({ re: 0.4 * Math.cos(angle), im: 0.9 * Math.sin(angle) });
+    }
+
+    const maxIter = 50;
+    for (let iter = 0; iter < maxIter; iter++) {
+        let maxDelta = 0;
+        for (let i = 0; i < n; i++) {
+            let pVal = normCoeffs[0];
+            for (let j = 1; j <= n; j++) {
+                pVal = C.add(C.mul(pVal, roots[i]), normCoeffs[j]);
+            }
+
+            let prod = { re: 1, im: 0 };
+            for (let j = 0; j < n; j++) {
+                if (i !== j) {
+                    prod = C.mul(prod, C.sub(roots[i], roots[j]));
+                }
+            }
+
+            const delta = C.div(pVal, prod);
+            roots[i] = C.sub(roots[i], delta);
+            
+            const mag = C.mag(delta);
+            if (mag > maxDelta) maxDelta = mag;
+        }
+        if (maxDelta < 1e-6) break;
+    }
+    return roots;
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const elements = {
         Ra: document.getElementById('Ra'),
@@ -48,6 +102,15 @@ document.addEventListener("DOMContentLoaded", () => {
         Vmax: document.getElementById('Vmax'),
         VmaxValue: document.getElementById('Vmax-value'),
 
+        TL: document.getElementById('TL'),
+        TLValue: document.getElementById('TL-value'),
+
+        plotBodeContainer: document.getElementById('plot-bode-container'),
+        plotStabilityContainer: document.getElementById('plot-stability-container'),
+
+        toggleRobust: document.getElementById('toggle-robust'),
+        robustSection: document.getElementById('robust-section'),
+
         tSim: document.getElementById('t-sim'),
         dtSim: document.getElementById('dt-sim'),
         runButton: document.getElementById('run-button'),
@@ -66,7 +129,6 @@ document.addEventListener("DOMContentLoaded", () => {
         closeButtons: document.querySelectorAll('.close-btn'),
     };
 
-    let plotlyLayout = {};
     let currentSimulationData = {};
     
     const colorPrimary = 'rgb(0, 170, 255)';
@@ -148,6 +210,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 else {
                     elements.stabilitySection.style.display = 'none';
+                }
+            });
+        }
+
+        elements.TL.addEventListener('input', () => {
+            elements.TLValue.textContent = elements.TL.value;
+            updateSimulator(true); 
+        });
+
+        if (elements.toggleRobust) {
+            elements.toggleRobust.addEventListener('click', (e) => {
+                const btn = e.currentTarget;
+                btn.classList.toggle('active');
+                if (btn.classList.contains('active')) {
+                    elements.robustSection.style.display = 'block';
+                } else {
+                    elements.robustSection.style.display = 'none';
                 }
             });
         }
@@ -235,61 +314,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return { tr, ts, os, ess };
     }
 
-    const C = {
-        add: (a, b) => ({ re: a.re + b.re, im: a.im + b.im }),
-        sub: (a, b) => ({ re: a.re - b.re, im: a.im - b.im }),
-        mul: (a, b) => ({ re: a.re * b.re - a.im * b.im, im: a.re * b.im + a.im * b.re }),
-        div: (a, b) => {
-            const denom = b.re * b.re + b.im * b.im;
-            return {
-                re: (a.re * b.re + a.im * b.im) / denom,
-                im: (a.im * b.re - a.re * b.im) / denom
-            };
-        },
-        mag: (a) => Math.sqrt(a.re * a.re + a.im * a.im)
-    };
-
-    function findRoots(coeffs) {
-        const n = coeffs.length - 1;
-        const normCoeffs = coeffs.map(c => ({ re: c / coeffs[0], im: 0 }));
-        
-        let roots = [];
-        const radius = 0.4 + 0.9;
-        for (let i = 0; i < n; i++) {
-            const angle = (2 * Math.PI * i) / n;
-            roots.push({
-                re: Math.pow(0.4, i) * Math.cos(angle),
-                im: Math.pow(0.9, i) * Math.sin(angle)
-            });
-        }
-
-        const maxIter = 50;
-        for (let iter = 0; iter < maxIter; iter++) {
-            let maxDelta = 0;
-            for (let i = 0; i < n; i++) {
-                let pVal = normCoeffs[0];
-                for (let j = 1; j <= n; j++) {
-                    pVal = C.add(C.mul(pVal, roots[i]), normCoeffs[j]);
-                }
-
-                let prod = { re: 1, im: 0 };
-                for (let j = 0; j < n; j++) {
-                    if (i !== j) {
-                        prod = C.mul(prod, C.sub(roots[i], roots[j]));
-                    }
-                }
-
-                const delta = C.div(pVal, prod);
-                roots[i] = C.sub(roots[i], delta);
-                
-                const mag = C.mag(delta);
-                if (mag > maxDelta) maxDelta = mag;
-            }
-            if (maxDelta < 1e-6) break;
-        }
-        return roots;
-    }
-    
     function updateStability(params) {
         if (!elements.valPoles) return;
 
@@ -382,6 +406,307 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
+    function calculateBodeData(params) {
+        const { Ra, La, Kt, Kb, J, b, Kp, Ki, Kd, Kf, plantType, isPIDEnabled } = params;
+        
+        const p2 = La * J;
+        const p1 = La * b + Ra * J;
+        const p0 = Ra * b + Kt * Kb;
+        const pNum = Kt;
+
+        const freqs = [];
+        const numPoints = 100;
+        const startExp = -1;
+        const endExp = 3;
+        
+        for (let i = 0; i <= numPoints; i++) {
+            const val = Math.pow(10, startExp + (endExp - startExp) * (i / numPoints));
+            freqs.push(val);
+        }
+
+        const mags = [];
+        const phases = [];
+        
+        freqs.forEach(w => {
+            const s = { re: 0, im: w };
+            const s2 = C.mul(s, s);
+            
+            const term2 = { re: p2 * s2.re, im: p2 * s2.im };
+            const term1 = { re: p1 * s.re, im: p1 * s.im };
+            const term0 = { re: p0, im: 0 };
+            
+            let den = C.add(C.add(term2, term1), term0);
+            
+            if (plantType === '0') {
+                den = C.mul(den, s); 
+            }
+            
+            const PlantVal = C.div({ re: pNum, im: 0 }, den);
+
+            let ControllerVal = { re: 1, im: 0 };
+            
+            if (isPIDEnabled) {
+                const Pterm = { re: Kp, im: 0 };
+                const Dterm = { re: -Kd * w * w, im: Kd * w };
+                const DtermCorr = { re: 0, im: Kd * w };
+                
+                const Iterm = { re: 0, im: -Ki / w };
+                
+                ControllerVal = C.add(C.add(Pterm, DtermCorr), Iterm);
+                
+                const HVal = { re: Kf, im: 0 };
+                ControllerVal = C.mul(ControllerVal, HVal);
+            } else {
+                 ControllerVal = { re: 1, im: 0 };
+            }
+
+            const LoopGain = C.mul(PlantVal, ControllerVal);
+            
+            const magAbs = C.mag(LoopGain);
+            const magdB = 20 * Math.log10(magAbs);
+            
+            let phaseRad = Math.atan2(LoopGain.im, LoopGain.re);
+            let phaseDeg = phaseRad * (180 / Math.PI);
+            
+            mags.push(magdB);
+            phases.push(phaseDeg);
+        });
+
+        let pm = null;
+        let gm = null;
+        let pmFreq = null;
+        let gmFreq = null;
+
+        for (let i = 0; i < freqs.length - 1; i++) {
+            if ((mags[i] > 0 && mags[i+1] <= 0) || (mags[i] < 0 && mags[i+1] >= 0)) {
+                const slope = (phases[i+1] - phases[i]) / (mags[i+1] - mags[i]);
+                const phaseAt0dB = phases[i] + slope * (0 - mags[i]);
+                
+                let pNorm = phaseAt0dB;
+                while (pNorm > 0) pNorm -= 360;
+                while (pNorm < -360) pNorm += 360;
+                
+                pm = 180 + pNorm;
+                pmFreq = freqs[i];
+            }
+            
+            const p1 = phases[i];
+            const p2 = phases[i+1];
+            
+             if ((p1 > -180 && p2 <= -180) || (p1 < -180 && p2 >= -180)) {
+                const slope = (mags[i+1] - mags[i]) / (phases[i+1] - phases[i]);
+                const magAt180 = mags[i] + slope * (-180 - phases[i]);
+                gm = -magAt180;
+                gmFreq = freqs[i];
+             }
+        }
+
+        return { freqs, mags, phases, pm, gm, pmFreq, gmFreq };
+    }
+
+    function plotFrequencyAnalysis(params, bodeData) {
+        const { freqs, mags, phases, pm, gm } = bodeData;
+        const { isPIDEnabled } = params;
+
+        const colorText = '#d4d4d4';
+        const colorGrid = '#4a4a4a';
+        const colorMag = '#00c7ff';
+        const colorPhase = '#ff9f43';
+        const colorRef = 'rgba(255,255,255,0.3)';
+        const colorPole = '#ff4d4d';
+        
+        const traceMag = {
+            x: freqs,
+            y: mags,
+            name: 'Magnitudo (dB)',
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: colorMag, width: 2 },
+            xaxis: 'x',
+            yaxis: 'y',
+            showlegend: true
+        };
+
+        const tracePhase = {
+            x: freqs,
+            y: phases,
+            name: 'Fasa (deg)',
+            type: 'scatter',
+            mode: 'lines',
+            line: { color: colorPhase, width: 2 },
+            xaxis: 'x',
+            yaxis: 'y2',
+            showlegend: true
+        };
+        
+        const line0dB = {
+            x: freqs, y: Array(freqs.length).fill(0),
+            mode: 'lines', name: 'Ref 0 dB',
+            line: { color: colorRef, dash: 'dot', width: 1 },
+            xaxis: 'x', yaxis: 'y',
+            showlegend: true
+        };
+
+        const line180Deg = {
+            x: freqs, y: Array(freqs.length).fill(-180),
+            mode: 'lines', name: 'Ref -180°',
+            line: { color: colorRef, dash: 'dot', width: 1 },
+            xaxis: 'x', yaxis: 'y2',
+            showlegend: true
+        };
+
+        const layoutBode = {
+            grid: { rows: 2, columns: 1, pattern: 'independent' },
+            title: 'Bode Plot (Frequency Response)',
+            titlefont: { color: colorText, family: 'Segoe UI' },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: colorText, family: 'Segoe UI' },
+            showlegend: true,
+            legend: { x: 1, xanchor: 'right', y: 1 },
+            
+            xaxis: { 
+                type: 'log', 
+                showticklabels: false,
+                gridcolor: colorGrid, 
+                range: [-1, 3] 
+            },
+            yaxis: { 
+                title: 'Magnitude (dB)', 
+                gridcolor: colorGrid,
+                domain: [0.55, 1]
+            },
+            
+            xaxis2: { 
+                type: 'log', 
+                title: 'Frekuensi (rad/s)', 
+                gridcolor: colorGrid, 
+                range: [-1, 3],
+                anchor: 'y2'
+            },
+            yaxis2: { 
+                title: 'Phase (deg)', 
+                gridcolor: colorGrid,
+                domain: [0, 0.45],
+                range: [-270, 90]
+            },
+            margin: { t: 40, b: 40, l: 60, r: 20 }
+        };
+
+        Plotly.newPlot(elements.plotBodeContainer, [traceMag, line0dB, tracePhase, line180Deg], layoutBode, { responsive: true, displayModeBar: false });
+
+        const { Ra, La, Kt, Kb, J, b, Kp, Ki, Kd, Kf, plantType } = params;
+        const p_s2 = La * J;
+        const p_s1 = Ra * J + La * b;
+        const p_s0 = Ra * b + Kt * Kb;
+        let coeffs = [];
+        
+        if (isPIDEnabled) {
+            if (plantType === '1') {
+                coeffs = [p_s2, p_s1 + (Kt*Kf*Kd), p_s0 + (Kt*Kf*Kp), Kt*Kf*Ki];
+            } else {
+                coeffs = [p_s2, p_s1, p_s0 + (Kt*Kf*Kd), Kt*Kf*Kp, Kt*Kf*Ki];
+            }
+        } else {
+            coeffs = (plantType === '1') ? [p_s2, p_s1, p_s0] : [p_s2, p_s1, p_s0, 0];
+        }
+        
+        const poles = findRoots(coeffs);
+        const poleRe = poles.map(p => p.re);
+        const poleIm = poles.map(p => p.im);
+
+        const tracePoles = {
+            x: poleRe,
+            y: poleIm,
+            mode: 'markers',
+            type: 'scatter',
+            name: isPIDEnabled ? 'Closed-Loop Poles' : 'Open-Loop Poles',
+            marker: { symbol: 'x', size: 12, color: colorPole, line: { width: 2 } },
+            showlegend: true
+        };
+
+        const maxRe = Math.max(...poleRe.map(Math.abs), 5) * 1.2;
+        const maxIm = Math.max(...poleIm.map(Math.abs), 5) * 1.2;
+        const limit = Math.max(maxRe, maxIm);
+
+        const layoutSPlane = {
+            title: 'Peta Pole-Zero (Bidang S)',
+            titlefont: { color: colorText, family: 'Segoe UI' },
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            font: { color: colorText, family: 'Segoe UI' },
+            xaxis: { title: 'Real (σ)', gridcolor: colorGrid, zerolinecolor: '#fff', range: [-limit, limit/4] },
+            yaxis: { title: 'Imaginary (jω)', gridcolor: colorGrid, zerolinecolor: '#fff', range: [-limit, limit] },
+            showlegend: true,
+            legend: { x: 0, y: 1 },
+            margin: { t: 40, b: 40, l: 40, r: 40 }
+        };
+
+        Plotly.newPlot(elements.plotStabilityContainer, [tracePoles], layoutSPlane, { responsive: true, displayModeBar: false });
+
+        let robustHTML = '';
+
+        if (isPIDEnabled) {
+            robustHTML = `
+                <table style="width:100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 5px; color: var(--color-text-dim);"><strong>Status Sistem:</strong></td>
+                        <td style="padding: 5px; font-weight: bold; color: var(--color-primary);">Closed Loop (PID)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; color: var(--color-text-dim);"><strong>Phase Margin (PM):</strong></td>
+                        <td style="padding: 5px; font-weight: bold; color: ${pm > 45 ? 'var(--color-secondary)' : 'var(--color-danger)'};">
+                            ${pm !== null ? pm.toFixed(1) + '°' : 'N/A'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; color: var(--color-text-dim);"><strong>Gain Margin (GM):</strong></td>
+                        <td style="padding: 5px; font-weight: bold; color: ${gm > 6 || gm === null ? 'var(--color-secondary)' : 'var(--color-warn)'};">
+                            ${gm !== null ? gm.toFixed(1) + ' dB' : '> Inf'}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; color: var(--color-text-dim);"><strong>Robustness:</strong></td>
+                        <td style="padding: 5px;">
+                            ${ pm > 45 ? '<span style="color:#0f0">Good</span>' : '<span style="color:#f00">Poor (Osilatif)</span>' }
+                        </td>
+                    </tr>
+                </table>
+                <p style="font-size:0.85rem; margin-top:10px; color:var(--color-text-dim); border-top:1px solid #444; padding-top:5px;">
+                    <em>Sistem aktif mengoreksi error. PM > 45° disarankan agar tahan terhadap perubahan beban (${params.TL.toFixed(1)} Nm).</em>
+                </p>
+            `;
+        } else {
+            robustHTML = `
+                <table style="width:100%; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 5px; color: var(--color-text-dim);"><strong>Status Sistem:</strong></td>
+                        <td style="padding: 5px; font-weight: bold; color: var(--color-warn);">Open Loop (Manual)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; color: var(--color-text-dim);"><strong>Phase Margin (PM):</strong></td>
+                        <td style="padding: 5px; font-family: var(--font-mono); color: var(--color-text-dim);">N/A</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; color: var(--color-text-dim);"><strong>Gain Margin (GM):</strong></td>
+                        <td style="padding: 5px; font-family: var(--font-mono); color: var(--color-text-dim);">N/A</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 5px; color: var(--color-text-dim);"><strong>Robustness:</strong></td>
+                        <td style="padding: 5px; color: var(--color-danger);">Low (Tidak ada feedback)</td>
+                    </tr>
+                </table>
+                <p style="font-size:0.85rem; margin-top:10px; color:var(--color-text-dim); border-top:1px solid #444; padding-top:5px;">
+                    <em>Pada mode Open Loop, analisis Robustness tidak berlaku karena sistem tidak melakukan koreksi otomatis terhadap gangguan.</em>
+                </p>
+            `;
+        }
+
+        if(elements.robustSection) {
+            elements.robustSection.innerHTML = robustHTML;
+        }
+    }
+
     function updateSimulator(runSimulation) {
         const params = readParameters();
         
@@ -389,7 +714,18 @@ document.addEventListener("DOMContentLoaded", () => {
             currentSimulationData = simulateSystem(params);
             plotResponse(currentSimulationData, params);
             updateAnalysis(currentSimulationData, params);
-            updateStability(params);
+            
+            try {
+                if (typeof updateStability === 'function') { 
+                    updateStability(params); 
+                }
+                
+                const bodeData = calculateBodeData(params);
+                plotFrequencyAnalysis(params, bodeData);
+                
+            } catch (e) {
+                console.warn("Analisis Frekuensi dilewati karena parameter ekstrem atau error kalkulasi:", e);
+            }
         }
         
         updateDerivedParameters();
@@ -405,6 +741,8 @@ document.addEventListener("DOMContentLoaded", () => {
             J: parseFloat(elements.J.value),
             b: parseFloat(elements.b.value),
             
+            TL: parseFloat(elements.TL.value),
+
             Kp: parseFloat(elements.Kp.value),
             Ki: parseFloat(elements.Ki.value),
             Kd: parseFloat(elements.Kd.value),
@@ -423,57 +761,62 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function simulateSystem(params) {
-        const { Ra, La, Kt, Kb, J, b, Kp, Ki, Kd, Kf, Vmax, setpoint, plantType, tSim, dt, isPIDEnabled } = params;
+        const { Ra, La, Kt, Kb, J, b, TL, Kp, Ki, Kd, Kf, Vmax, setpoint, plantType, tSim, dt, isPIDEnabled } = params;
 
         const nSteps = Math.floor(tSim / dt);
         const t = Array(nSteps).fill(0).map((_, i) => i * dt);
+        
+        const r = Array(nSteps).fill(setpoint); 
 
         const x1 = new Array(nSteps).fill(0);
         const x2 = new Array(nSteps).fill(0);
         const x3 = new Array(nSteps).fill(0);
 
         const y = new Array(nSteps).fill(0);
-        const u_unclamped = new Array(nSteps).fill(0);
         const u_clamped = new Array(nSteps).fill(0);
+        const u_unclamped = new Array(nSteps).fill(0); 
 
         let integralTerm = 0;
         let prevPV = 0;
 
         for (let i = 1; i < nSteps; i++) {
-            let clampedVoltage = 0;
+            let appliedVoltage = 0;
 
             if (isPIDEnabled) {
                 const pv = (plantType === '1') ? x2[i-1] : x1[i-1];
-                
-                const feedback = pv * Kf;
+                const feedback = pv * Kf; 
                 const error = setpoint - feedback;
                 const proportionalTerm = Kp * error;
                 const derivativeTerm = -Kd * (pv - prevPV) / dt;
                 
-                const voltage = proportionalTerm + integralTerm + derivativeTerm;
-                u_unclamped[i] = voltage;
+                const rawVoltage = proportionalTerm + integralTerm + derivativeTerm;
+                u_unclamped[i] = rawVoltage;
 
-                clampedVoltage = voltage;
-                if (clampedVoltage > Vmax) clampedVoltage = Vmax;
-                if (clampedVoltage < -Vmax) clampedVoltage = -Vmax;
+                appliedVoltage = rawVoltage;
+                if (appliedVoltage > Vmax) appliedVoltage = Vmax;
+                if (appliedVoltage < -Vmax) appliedVoltage = -Vmax;
                 
-                const isSaturated = (voltage >= Vmax && error > 0) || (voltage <= -Vmax && error < 0);
-                if (!isSaturated) {
+                const isSaturated = (appliedVoltage !== rawVoltage);
+                const sameSign = (rawVoltage > 0 && error > 0) || (rawVoltage < 0 && error < 0);
+                
+                if (!isSaturated || !sameSign) {
                     integralTerm += Ki * error * dt;
                 }
+                
                 prevPV = pv;
             } 
             else {
                 u_unclamped[i] = setpoint;
-                clampedVoltage = setpoint;
-                if (clampedVoltage > Vmax) clampedVoltage = Vmax;
-                if (clampedVoltage < -Vmax) clampedVoltage = -Vmax;
+                appliedVoltage = setpoint;
+                if (appliedVoltage > Vmax) appliedVoltage = Vmax;
+                if (appliedVoltage < -Vmax) appliedVoltage = -Vmax;
             }
-            u_clamped[i] = clampedVoltage;
+            
+            u_clamped[i] = appliedVoltage;
 
             const x1_dot = x2[i-1];
-            const x2_dot = (Kt * x3[i-1] - b * x2[i-1]) / J;
-            const x3_dot = (clampedVoltage - Ra * x3[i-1] - Kb * x2[i-1]) / La;
+            const x2_dot = (Kt * x3[i-1] - b * x2[i-1] - TL) / J; 
+            const x3_dot = (appliedVoltage - Ra * x3[i-1] - Kb * x2[i-1]) / La;
 
             x1[i] = x1[i-1] + x1_dot * dt;
             x2[i] = x2[i-1] + x2_dot * dt;
@@ -482,7 +825,7 @@ document.addEventListener("DOMContentLoaded", () => {
             y[i] = (plantType === '1') ? x2[i] : x1[i];
         }
 
-        return { t, y, u_unclamped, u_clamped };
+        return { t, y, u_unclamped, u_clamped, r }; 
     }
 
     function plotResponse(data, params) {
@@ -518,21 +861,9 @@ document.addEventListener("DOMContentLoaded", () => {
             paper_bgcolor: 'rgba(0,0,0,0)',
             plot_bgcolor: 'rgba(0,0,0,0)',
             font: { color: colorText, family: fontMain },
-            xaxis: {
-                title: 'Waktu (detik)',
-                gridcolor: colorGrid,
-            },
-            yaxis: {
-                title: yAxisTitle,
-                gridcolor: colorGrid,
-                zerolinecolor: colorPrimary,
-            },
-            legend: {
-                orientation: 'h',
-                y: -0.2,
-                x: 0.5,
-                xanchor: 'center'
-            }
+            xaxis: { title: 'Waktu (detik)', gridcolor: colorGrid },
+            yaxis: { title: yAxisTitle, gridcolor: colorGrid, zerolinecolor: colorPrimary },
+            legend: { orientation: 'h', y: -0.2, x: 0.5, xanchor: 'center' }
         };
 
         const controlSignalTrace = {
@@ -567,22 +898,9 @@ document.addEventListener("DOMContentLoaded", () => {
             paper_bgcolor: 'rgba(0,0,0,0)',
             plot_bgcolor: 'rgba(0,0,0,0)',
             font: { color: colorText, family: fontMain },
-            xaxis: {
-                title: 'Waktu (detik)',
-                gridcolor: colorGrid,
-            },
-            yaxis: {
-                title: 'Tegangan (V)',
-                gridcolor: colorGrid,
-                zerolinecolor: colorWarn,
-                range: [-Vmax * 1.5, Vmax * 1.5]
-            },
-            legend: {
-                orientation: 'h',
-                y: -0.2,
-                x: 0.5,
-                xanchor: 'center'
-            }
+            xaxis: { title: 'Waktu (detik)', gridcolor: colorGrid },
+            yaxis: { title: 'Tegangan (V)', gridcolor: colorGrid, zerolinecolor: colorWarn, range: [-Vmax * 1.5, Vmax * 1.5] },
+            legend: { orientation: 'h', y: -0.2, x: 0.5, xanchor: 'center' }
         };
 
         Plotly.newPlot(elements.plotContainer, tracesToPlot, plotlyLayoutResponse, { responsive: true });
@@ -708,7 +1026,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateAnalysis(data, params) {
-        const { y } = data;
+        const { y, u_clamped } = data;
         const { setpoint, plantType, isPIDEnabled, Vmax } = params;
         
         if (!y || y.length === 0) {
@@ -727,7 +1045,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (elements.valEss) elements.valEss.textContent = '-';
 
         if (isPIDEnabled) {
-            const maxVal = Math.max(...y);
             const error_ss = metrics.ess.toFixed(4);
             const overshoot = metrics.os.toFixed(2);
             if (elements.valEss) elements.valEss.textContent = metrics.ess.toFixed(4);
@@ -771,7 +1088,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        const isSaturated = data.u_clamped.some((u, i) => Math.abs(u) >= Vmax);
+        const isSaturated = u_clamped.some((u) => Math.abs(u) >= Vmax);
         if (isSaturated) {
             analysisHTML += `<li><strong>Saturasi Aktuator Terdeteksi.</strong> Sinyal kendali (tegangan) mencapai batas <strong>${Vmax} V</strong>. Ini membatasi kecepatan respons sistem.</li>`;
         }
