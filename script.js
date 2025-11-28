@@ -656,13 +656,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     <tr>
                         <td style="padding: 5px; color: var(--color-text-dim);"><strong>Phase Margin (PM):</strong></td>
                         <td style="padding: 5px; font-weight: bold; color: ${pm > 45 ? 'var(--color-secondary)' : 'var(--color-danger)'};">
-                            ${pm !== null ? pm.toFixed(1) + '°' : 'N/A'}
+                            ${pm !== null ? pm.toFixed(2) + '°' : 'N/A'}
                         </td>
                     </tr>
                     <tr>
                         <td style="padding: 5px; color: var(--color-text-dim);"><strong>Gain Margin (GM):</strong></td>
                         <td style="padding: 5px; font-weight: bold; color: ${gm > 6 || gm === null ? 'var(--color-secondary)' : 'var(--color-warn)'};">
-                            ${gm !== null ? gm.toFixed(1) + ' dB' : '> Inf'}
+                            ${gm !== null ? gm.toFixed(2) + ' dB' : '> Inf'}
                         </td>
                     </tr>
                     <tr>
@@ -673,7 +673,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     </tr>
                 </table>
                 <p style="font-size:0.85rem; margin-top:10px; color:var(--color-text-dim); border-top:1px solid #444; padding-top:5px;">
-                    <em>Sistem aktif mengoreksi error. PM > 45° disarankan agar tahan terhadap perubahan beban (${params.TL.toFixed(1)} Nm).</em>
+                    <em>Sistem aktif mengoreksi error. PM > 45° disarankan agar tahan terhadap perubahan beban (${params.TL.toFixed(3)} Nm).</em>
                 </p>
             `;
         } else {
@@ -736,10 +736,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return {
             Ra: parseFloat(elements.Ra.value),
             La: parseFloat(elements.La.value),
+            
+            J: Math.max(parseFloat(elements.J.value), 1e-9), 
+            b: parseFloat(elements.b.value),
+            
             Kt: parseFloat(elements.Kt.value),
             Kb: parseFloat(elements.Kb.value),
-            J: parseFloat(elements.J.value),
-            b: parseFloat(elements.b.value),
             
             TL: parseFloat(elements.TL.value),
 
@@ -751,7 +753,8 @@ document.addEventListener("DOMContentLoaded", () => {
             setpoint: parseFloat(elements.setpoint.value),
             
             Kf: parseFloat(elements.Kf.value),
-            Vmax: parseFloat(elements.Vmax.value),
+            
+            Vmax: Math.abs(parseFloat(elements.Vmax.value)),
             
             tSim: Math.max(0.1, parseFloat(elements.tSim.value)),
             dt: Math.max(0.0001, parseFloat(elements.dtSim.value) / 1000),
@@ -763,66 +766,131 @@ document.addEventListener("DOMContentLoaded", () => {
     function simulateSystem(params) {
         const { Ra, La, Kt, Kb, J, b, TL, Kp, Ki, Kd, Kf, Vmax, setpoint, plantType, tSim, dt, isPIDEnabled } = params;
 
-        const nSteps = Math.floor(tSim / dt);
-        const t = Array(nSteps).fill(0).map((_, i) => i * dt);
-        
-        const r = Array(nSteps).fill(setpoint); 
+        const tau_e = La / Math.max(Ra, 1e-9); 
+        const tau_m = J / Math.max(b, 1e-9);
+        const tau_min = Math.min(tau_e, tau_m);
 
-        const x1 = new Array(nSteps).fill(0);
-        const x2 = new Array(nSteps).fill(0);
-        const x3 = new Array(nSteps).fill(0);
+        let dt_physics = Math.max(1e-7, Math.min(tau_min * 0.1, dt));
+        if (dt_physics < dt / 1000) dt_physics = dt / 1000;
 
-        const y = new Array(nSteps).fill(0);
-        const u_clamped = new Array(nSteps).fill(0);
-        const u_unclamped = new Array(nSteps).fill(0); 
+        const nSamples = Math.floor(tSim / dt);
+        const t = new Array(nSamples).fill(0);
+        const y = new Array(nSamples).fill(0);
+        const u_clamped = new Array(nSamples).fill(0);
+        const u_unclamped = new Array(nSamples).fill(0);
+        const r = new Array(nSamples).fill(setpoint);
+
+        let x1 = 0; 
+        let x2 = 0; 
+        let x3 = 0;
 
         let integralTerm = 0;
         let prevPV = 0;
+        let derivativeFilterState = 0;
+        let prevDerivativeTerm = 0;
+        
+        const tauD = 0.001;
+        const alpha = dt / (tauD + dt); 
 
-        for (let i = 1; i < nSteps; i++) {
+        const derivativeFunc = (currX, V, load) => {
+            const dx1 = currX[1];
+            
+            const torqueElectrical = Kt * currX[2];
+            const torqueFriction = b * currX[1];
+            const torqueLoad = (currX[1] > 0 ? load : (currX[1] < 0 ? -load : 0)); 
+            const dx2 = (torqueElectrical - torqueFriction - torqueLoad) / J;
+
+            const backEMF = Kb * currX[1];
+            const dx3 = (V - Ra * currX[2] - backEMF) / Math.max(La, 1e-12); 
+            
+            return [dx1, dx2, dx3];
+        };
+
+        for (let i = 0; i < nSamples; i++) {
+            const currentTime = i * dt;
+            
+            t[i] = currentTime;
+            y[i] = (plantType === '1') ? x2 : x1;
+
             let appliedVoltage = 0;
+            let rawVoltage = 0;
+            const pv = (plantType === '1') ? x2 : x1;
 
             if (isPIDEnabled) {
-                const pv = (plantType === '1') ? x2[i-1] : x1[i-1];
                 const feedback = pv * Kf; 
                 const error = setpoint - feedback;
+                
                 const proportionalTerm = Kp * error;
-                const derivativeTerm = -Kd * (pv - prevPV) / dt;
-                
-                const rawVoltage = proportionalTerm + integralTerm + derivativeTerm;
-                u_unclamped[i] = rawVoltage;
 
-                appliedVoltage = rawVoltage;
-                if (appliedVoltage > Vmax) appliedVoltage = Vmax;
-                if (appliedVoltage < -Vmax) appliedVoltage = -Vmax;
+                const rawDerivative = - (pv - prevPV) / dt; 
+
+                derivativeFilterState = alpha * rawDerivative + (1 - alpha) * derivativeFilterState;
+                const derivativeTerm_unlimited = Kd * derivativeFilterState;
                 
-                const isSaturated = (appliedVoltage !== rawVoltage);
-                const sameSign = (rawVoltage > 0 && error > 0) || (rawVoltage < 0 && error < 0);
+                const maxDChange = 10.0;
+                const maxDStep = maxDChange * dt;
                 
-                if (!isSaturated || !sameSign) {
-                    integralTerm += Ki * error * dt;
+                let derivativeTerm = derivativeTerm_unlimited;
+
+                if (derivativeTerm_unlimited - prevDerivativeTerm > maxDStep) {
+                    derivativeTerm = prevDerivativeTerm + maxDStep;
+                } else if (derivativeTerm_unlimited - prevDerivativeTerm < -maxDStep) {
+                    derivativeTerm = prevDerivativeTerm - maxDStep;
                 }
                 
+                prevDerivativeTerm = derivativeTerm;
+
+                rawVoltage = proportionalTerm + integralTerm + derivativeTerm;
+                
+                if (rawVoltage > Vmax) appliedVoltage = Vmax;
+                else if (rawVoltage < -Vmax) appliedVoltage = -Vmax;
+                else appliedVoltage = rawVoltage;
+
+                const isSaturated = (Math.abs(rawVoltage) > Vmax);
+                const isHelping = (rawVoltage * error < 0);
+
+                if (!isSaturated || isHelping) {
+                    integralTerm += Ki * error * dt;
+                }
+
                 prevPV = pv;
-            } 
-            else {
-                u_unclamped[i] = setpoint;
-                appliedVoltage = setpoint;
-                if (appliedVoltage > Vmax) appliedVoltage = Vmax;
-                if (appliedVoltage < -Vmax) appliedVoltage = -Vmax;
+            } else {
+                rawVoltage = setpoint;
+                if (rawVoltage > Vmax) appliedVoltage = Vmax;
+                else if (rawVoltage < -Vmax) appliedVoltage = -Vmax;
+                else appliedVoltage = rawVoltage;
             }
-            
+
             u_clamped[i] = appliedVoltage;
+            u_unclamped[i] = rawVoltage;
 
-            const x1_dot = x2[i-1];
-            const x2_dot = (Kt * x3[i-1] - b * x2[i-1] - TL) / J; 
-            const x3_dot = (appliedVoltage - Ra * x3[i-1] - Kb * x2[i-1]) / La;
-
-            x1[i] = x1[i-1] + x1_dot * dt;
-            x2[i] = x2[i-1] + x2_dot * dt;
-            x3[i] = x3[i-1] + x3_dot * dt;
+            let timeAccumulator = 0;
             
-            y[i] = (plantType === '1') ? x2[i] : x1[i];
+            while (timeAccumulator < dt) {
+                let step = dt_physics;
+                if (timeAccumulator + step > dt) {
+                    step = dt - timeAccumulator;
+                }
+
+                const Xn = [x1, x2, x3]; 
+
+                const k1 = derivativeFunc(Xn, appliedVoltage, TL); 
+                
+                const k2_state = [Xn[0] + 0.5 * k1[0] * step, Xn[1] + 0.5 * k1[1] * step, Xn[2] + 0.5 * k1[2] * step];
+                const k2 = derivativeFunc(k2_state, appliedVoltage, TL);
+
+                const k3_state = [Xn[0] + 0.5 * k2[0] * step, Xn[1] + 0.5 * k2[1] * step, Xn[2] + 0.5 * k2[2] * step];
+                const k3 = derivativeFunc(k3_state, appliedVoltage, TL);
+
+                const k4_state = [Xn[0] + k3[0] * step, Xn[1] + k3[1] * step, Xn[2] + k3[2] * step];
+                const k4 = derivativeFunc(k4_state, appliedVoltage, TL);
+
+                x1 += (1/6) * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0]) * step;
+                x2 += (1/6) * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1]) * step;
+                x3 += (1/6) * (k1[2] + 2*k2[2] + 2*k3[2] + k4[2]) * step;
+
+                timeAccumulator += step;
+            }
         }
 
         return { t, y, u_unclamped, u_clamped, r }; 
