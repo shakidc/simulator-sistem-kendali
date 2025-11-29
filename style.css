@@ -215,7 +215,33 @@ header h2 {
     border: 2px solid var(--color-bg);
 }
 
-.slider-value, #setpoint-unit {
+input[type="number"].slider-value::-webkit-outer-spin-button,
+input[type="number"].slider-value::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input[type="number"].slider-value {
+    -moz-appearance: textfield;
+    appearance: textfield;
+    resize: none; 
+}
+
+.slider-value{
+    display: inline-block;
+    min-width: 45px;
+    text-align: left;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    color: var(--color-secondary);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-weight: bold;
+    padding: 2px 4px;
+    box-sizing: border-box;
+}
+
+#setpoint-unit {
     display: inline-block;
     min-width: 45px;
     text-align: right;

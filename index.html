@@ -98,42 +98,42 @@
                     <label for="Ra">Resistansi Armatur ($R_a$) [$\Omega$]</label>
                     <div class="slider-wrapper">
                         <input type="range" id="Ra" min="0.01" max="50.00" value="0.01" step="0.01" class="slider">
-                        <span id="Ra-value" class="slider-value">0.01</span>
+                        <input type="number" id="Ra-value" min="0.01" max="50.00" value="0.01" step="0.01" class="slider-value input-sync">
                     </div>
                 </div>
                 <div class="slider-group">
                     <label for="La">Induktansi Armatur ($L_a$) [H]</label>
                     <div class="slider-wrapper">
                         <input type="range" id="La" min="0.00001" max="0.01000" value="0.00001" step="0.00001" class="slider">
-                        <span id="La-value" class="slider-value">0.00001</span>
+                        <input type="number" id="La-value" min="0.00001" max="0.01000" value="0.00001" step="0.00001" class="slider-value input-sync">
                     </div>
                 </div>
                 <div class="slider-group">
                     <label for="Kt">Konstanta Torsi ($K_t$) [Nm/A]</label>
                     <div class="slider-wrapper">
                         <input type="range" id="Kt" min="0.001" max="2.000" value="0.001" step="0.001" class="slider">
-                        <span id="Kt-value" class="slider-value">0.001</span>
+                        <input type="number" id="Kt-value" min="0.001" max="2.000" value="0.001" step="0.001" class="slider-value input-sync">
                     </div>
                 </div>
                 <div class="slider-group">
                     <label for="Kb">Konstanta GGL Balik ($K_b$) [V/rad/s]</label>
                     <div class="slider-wrapper">
                         <input type="range" id="Kb" min="0.001" max="2.000" value="0.001" step="0.001" class="slider">
-                        <span id="Kb-value" class="slider-value">0.001</span>
+                        <input type="number" id="Kb-value" min="0.001" max="2.000" value="0.001" step="0.001" class="slider-value input-sync">
                     </div>
                 </div>
                 <div class="slider-group">
                     <label for="J">Inersia Rotor & Beban ($J$) [kgm²]</label>
                     <div class="slider-wrapper">
                         <input type="range" id="J" min="0.00000001" max="0.00500000" value="0.00000001" step="0.00000001" class="slider">
-                        <span id="J-value" class="slider-value">0.00000001</span>
+                        <input type="number" id="J-value" min="0.00000001" max="0.00500000" value="0.00000001" step="0.00000001" class="slider-value input-sync">
                     </div>
                 </div>
                 <div class="slider-group">
                     <label for="b">Friksi Viseral ($b$) [Nms/rad]</label>
                     <div class="slider-wrapper">
                         <input type="range" id="b" min="0.0000001" max="0.0010000" value="0.0000001" step="0.0000001" class="slider">
-                        <span id="b-value" class="slider-value">0.0000001</span>
+                        <input type="number" id="b-value" min="0.0000001" max="0.0010000" value="0.0000001" step="0.0000001" class="slider-value input-sync">
                     </div>
                 </div>
             </div>
@@ -171,7 +171,7 @@
                 </div>
                 <div class="input-group">
                     <label for="setpoint">Target (Setpoint):</label> 
-                    <input type="number" id="setpoint" value="10" step="0.1" class="input-field">
+                    <input type="number" id="setpoint" value="10.0" step="0.1" class="input-field">
                     <span id="setpoint-unit">rad/s</span>
                 </div>
 
@@ -180,47 +180,47 @@
                         <label for="Kp">Proportional Gain ($K_p$)</label>
                         <div class="slider-wrapper">
                             <input type="range" id="Kp" min="0.0" max="50" value="0.01" step="0.01" class="slider">
-                            <span id="Kp-value" class="slider-value">0.01</span>
+                            <input type="number" id="Kp-value" min="0.0" max="50" value="0.01" step="0.01" class="slider-value input-sync">
                         </div>
                     </div>
                     <div class="slider-group">
                         <label for="Ki">Integral Gain ($K_i$)</label>
                         <div class="slider-wrapper">
                             <input type="range" id="Ki" min="0.0" max="100" value="0.0" step="0.01" class="slider">
-                            <span id="Ki-value" class="slider-value">0.0</span>
+                            <input type="number" id="Ki-value" min="0.0" max="100" value="0.0" step="0.01" class="slider-value input-sync">
                         </div>
                     </div>
                     <div class="slider-group">
                         <label for="Kd">Derivative Gain ($K_d$)</label>
                         <div class="slider-wrapper">
                             <input type="range" id="Kd" min="0.0" max="50" value="0.0" step="0.01" class="slider">
-                            <span id="Kd-value" class="slider-value">0.0</span>
+                            <input type="number" id="Kd-value" min="0.0" max="50" value="0.0" step="0.01" class="slider-value input-sync">
                         </div>
                     </div>
                 </div> 
             </div>
             
             <div class="panel-section">
-                <h3>Aktuator & Sensor (Realistis)</h3>
+                <h3>Aktuator, Sensor, & Gangguan</h3>
                 <div class="slider-group">
                     <label for="Kf">Feedback Sensor Gain ($H$)</label>
                     <div class="slider-wrapper">
                         <input type="range" id="Kf" min="0.1" max="2" value="1.0" step="0.05" class="slider">
-                        <span id="Kf-value" class="slider-value">1.0</span>
+                        <input type="number" id="Kf-value" min="0.1" max="2" value="1.0" step="0.05" class="slider-value input-sync">
                     </div>
                 </div>
                 <div class="slider-group">
                     <label for="Vmax">Limit Tegangan ($V_{max}$) [V]</label>
                     <div class="slider-wrapper">
                         <input type="range" id="Vmax" min="1" max="200" value="24" step="1" class="slider">
-                        <span id="Vmax-value" class="slider-value">24</span>
+                        <input type="number" id="Vmax-value" min="1" max="200" value="24" step="1" class="slider-value input-sync">
                     </div>
                 </div>
                 <div class="slider-group">
                     <label for="TL">Gangguan Eksternal [Nm]</label>
                     <div class="slider-wrapper">
                         <input type="range" id="TL" min="0.00000" max="0.30000" value="0.00000" step="0.00001" class="slider">
-                        <span id="TL-value" class="slider-value">0.00000</span>
+                        <input type="number" id="TL-value" min="0.00000" max="0.30000" value="0.00000" step="0.00001" class="slider-value input-sync">
                     </div>
                 </div>
             </div>
@@ -379,7 +379,7 @@
             <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 15px 0;">
 
             <h4>4. Analisis Kestabilan & Frekuensi (Advanced)</h4>
-            <p>Gunakan panel grafik bagian bawah untuk analisis mendalam (Bode Plot & S-Plane). Fitur ini membantu memprediksi apakah sistem "tangguh" (robust) terhadap gangguan.</p>
+            <p>Gunakan panel grafik bagian bawah untuk analisis mendalam (Bode Plot & S-Plane). Fitur ini membantu memprediksi apakah sistem "tangguh" (robust) terhadap gangguan. Variasikan nilai torsi beban pada bagian "Gangguan Eksternal" untuk mengamati bagaimana respon sistem saat diberi gangguan. Anda juga dapat memvariasikan nilai <i>gain</i> dari sensor pada bagian "Feedback Sensor Gain" untuk mengamati pengaruh keandalan sensor terhadap respon sistem (nilai <i>default</i> adalah 1 yang berarti sensor berlaku ideal).</p>
 
             <h4>A. Interpretasi Bode Plot (Respon Frekuensi)</h4>
             

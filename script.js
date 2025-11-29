@@ -52,6 +52,9 @@ function findRoots(coeffs) {
     return roots;
 }
 
+let simulationTimeout;
+const DEBOUNCE_DELAY = 250;
+
 document.addEventListener("DOMContentLoaded", () => {
     const elements = {
         Ra: document.getElementById('Ra'),
@@ -154,22 +157,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function setupEventListeners() {
-        const physicalSliders = ['Ra', 'La', 'Kt', 'Kb', 'J', 'b'];
-        physicalSliders.forEach(id => {
-            elements[id].addEventListener('input', () => {
-                elements[`${id}Value`].textContent = parseFloat(elements[id].value).toPrecision(3);
-                updateSimulator(true);
-            });
-        });
-
-        const controlSliders = ['Kp', 'Ki', 'Kd', 'Kf', 'Vmax'];
-        controlSliders.forEach(id => {
-            elements[id].addEventListener('input', () => {
-                elements[`${id}Value`].textContent = elements[id].value;
-                updateSimulator(true);
-            });
-        });
-
         elements.pidEnable.addEventListener('change', () => {
             const isPIDEnabled = elements.pidEnable.checked;
             if (isPIDEnabled) {
@@ -187,6 +174,54 @@ document.addEventListener("DOMContentLoaded", () => {
             updateSimulator(true);
         });
         
+        const allSliders = document.querySelectorAll('.slider');
+        const allTextBoxes = document.querySelectorAll('.slider-value'); 
+
+        allSliders.forEach(slider => {
+            slider.addEventListener('input', () => {
+                const textBox = document.getElementById(`${slider.id}-value`); 
+                if (textBox) {
+                    const precision = slider.step.split('.')[1]?.length || 0;
+                    textBox.value = parseFloat(slider.value).toFixed(precision); 
+                }
+                clearTimeout(simulationTimeout);
+                simulationTimeout = setTimeout(() => {
+                    updateSimulator(true);
+                }, DEBOUNCE_DELAY);
+            });
+        });
+
+        allTextBoxes.forEach(textBox => {
+            textBox.addEventListener('change', () => {
+                const sliderId = textBox.id.replace('-value', '');
+                const slider = document.getElementById(sliderId);
+                
+                let value = parseFloat(textBox.value);
+                
+                if (isNaN(value)) {
+                    textBox.value = slider.value;
+                    return; 
+                }
+
+                const min = parseFloat(slider.min);
+                const max = parseFloat(slider.max);
+                const step = slider.step;
+
+                if (value < min) value = min;
+                if (value > max) value = max;
+
+                const precision = step.split('.')[1]?.length || 0;
+
+                slider.value = value.toFixed(precision);
+                textBox.value = slider.value; 
+                
+                clearTimeout(simulationTimeout);
+                simulationTimeout = setTimeout(() => {
+                    updateSimulator(true);
+                }, DEBOUNCE_DELAY);
+            });
+        });
+
         elements.setpoint.addEventListener('input', () => updateSimulator(true));
         elements.tSim.addEventListener('input', () => updateSimulator(true));
         elements.dtSim.addEventListener('input', () => updateSimulator(true));
@@ -213,11 +248,6 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             });
         }
-
-        elements.TL.addEventListener('input', () => {
-            elements.TLValue.textContent = elements.TL.value;
-            updateSimulator(true); 
-        });
 
         if (elements.toggleRobust) {
             elements.toggleRobust.addEventListener('click', (e) => {
@@ -1272,14 +1302,10 @@ document.addEventListener("DOMContentLoaded", () => {
     function initializeApp() {
         const allSliders = document.querySelectorAll('.slider');
         allSliders.forEach(slider => {
-            const valueSpan = document.getElementById(`${slider.id}-value`);
-            if (valueSpan) {
-                if (['La', 'J', 'b'].includes(slider.id)) {
-                     valueSpan.textContent = parseFloat(slider.value).toPrecision(3);
-                }
-                else {
-                    valueSpan.textContent = slider.value;
-                }
+            const textBox = document.getElementById(`${slider.id}-value`); 
+            if (textBox) {
+                const precision = slider.step.split('.')[1]?.length || 0;
+                textBox.value = parseFloat(slider.value).toFixed(precision);
             }
         });
         
