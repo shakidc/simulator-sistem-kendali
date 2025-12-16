@@ -362,19 +362,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (isPIDEnabled) {
             if (plantType === '1') {
-                const a3 = p_s2;
-                const a2 = p_s1 + (Kt * Kf * Kd);
-                const a1 = p_s0 + (Kt * Kf * Kp);
-                const a0 = Kt * Kf * Ki;
-                coeffs = [a3, a2, a1, a0];
+                coeffs = [
+                    p_s2,
+                    p_s1 + (Kt * Kf * Kd),
+                    p_s0 + (Kt * Kf * Kp),
+                    Kt * Kf * Ki
+                ];
             }
             else {
-                const a4 = p_s2;
-                const a3 = p_s1;
-                const a2 = p_s0 + (Kt * Kf * Kd);
-                const a1 = Kt * Kf * Kp;
-                const a0 = Kt * Kf * Ki;
-                coeffs = [a4, a3, a2, a1, a0];
+                coeffs = [
+                    p_s2,
+                    p_s1,
+                    p_s0 + (Kt * Kf * Kd),
+                    Kt * Kf * Kp,
+                    Kt * Kf * Ki
+                ];
             }
         }
         else {
@@ -388,11 +390,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const roots = findRoots(coeffs);
 
+        roots.sort((a, b) => C.mag(b) - C.mag(a));
+
         let polesHtml = '';
         let isUnstable = false;
         let isMarginal = false;
-
-        roots.sort((a, b) => b.re - a.re);
 
         roots.forEach((root, index) => {
             const re = root.re;
@@ -622,8 +624,8 @@ document.addEventListener("DOMContentLoaded", () => {
             },
             margin: { t: 40, b: 40, l: 60, r: 20 }
         };
-
-        Plotly.newPlot(elements.plotBodeContainer, [traceMag, line0dB, tracePhase, line180Deg], layoutBode, { responsive: true, displayModeBar: false });
+        
+        Plotly.newPlot(elements.plotBodeContainer, [traceMag, line0dB, tracePhase, line180Deg], layoutBode, { responsive: true, displayModeBar: true });
 
         const { Ra, La, Kt, Kb, J, b, Kp, Ki, Kd, Kf, plantType } = params;
         const p_s2 = La * J;
@@ -672,7 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
             margin: { t: 40, b: 40, l: 40, r: 40 }
         };
 
-        Plotly.newPlot(elements.plotStabilityContainer, [tracePoles], layoutSPlane, { responsive: true, displayModeBar: false });
+        Plotly.newPlot(elements.plotStabilityContainer, [tracePoles], layoutSPlane, { responsive: true, displayModeBar: true });
 
         let robustHTML = '';
 
@@ -1026,27 +1028,36 @@ document.addEventListener("DOMContentLoaded", () => {
         elements.derivedZeta.textContent = zeta.toPrecision(3);
     }
 
+    function formatScientific(num) {
+        if (Math.abs(num) < 1e-15) return "0";
+        if (Math.abs(num) >= 0.001 && Math.abs(num) < 1000) {
+            return parseFloat(num.toPrecision(3)).toString();
+        }
+        let [mantissa, exponent] = num.toExponential(2).split('e');
+        exponent = exponent.replace('+', '');
+        return `${mantissa} \\times 10^{${exponent}}`;
+    }
+
     function tfPoly(...terms) {
         let s = '';
         for (let i = 0; i < terms.length; i++) {
             const [val, power] = terms[i];
-            if (val === 0) continue;
+            if (Math.abs(val) < 1e-15) continue;
             
             let sign = (val > 0) ? ' + ' : ' - ';
             if (s === '' && val > 0) sign = '';
+            if (s === '' && val < 0) sign = '-';
             
-            let num = Math.abs(val);
+            let numStr = formatScientific(Math.abs(val));
+            
             let term = '';
+            if (power) {
+                if (numStr === "1") term = power;
+                else term = `${numStr} ${power}`;
+            } else {
+                term = numStr;
+            }
             
-            if (num === 1 && power) {
-                term = power;
-            }
-            else if (power) {
-                term = `${num.toExponential(2)} ${power}`;
-            }
-            else {
-                term = `${num.toExponential(2)}`;
-            }
             s += `${sign}${term}`;
         }
         return s || '0';
@@ -1054,7 +1065,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     function updateTransferFunction() {
         const p = readParameters();
-        const { Ra, La, Kt, Kb, J, b, Kp, Ki, Kd, Kf, isPIDEnabled, plantType } = p;
+        const { Ra, La, Kt, Kb, J, b, Kp, Ki, Kd, Kf, isPIDEnabled, plantType, setpoint, TL } = p;
 
         const plant_s2 = La * J;
         const plant_s1 = Ra * J + La * b;
@@ -1062,21 +1073,25 @@ document.addEventListener("DOMContentLoaded", () => {
         const plant_num = Kt;
 
         let htmlContent = '';
-        let title = '';
+
+        const valR = setpoint.toFixed(2);
+        const valTL = TL.toFixed(4);
 
         if (isPIDEnabled) {
-            title = 'Fungsi Alih Sistem <strong>Closed-Loop</strong>: $T(s) = Y(s)/R(s)$';
-            elements.toggleTfButton.textContent = 'Fungsi Alih Sistem (Closed Loop)';
-            
             const C_num_s2 = Kd;
             const C_num_s1 = Kp;
             const C_num_s0 = Ki;
             const H = Kf;
             
-            const numStr = tfPoly(
+            const numStrRef = tfPoly(
                 [C_num_s2 * plant_num, 's^2'],
                 [C_num_s1 * plant_num, 's'],
                 [C_num_s0 * plant_num, '']
+            );
+            
+            const numStrDist = tfPoly(
+                [-La, 's^2'],
+                [-Ra, 's']
             );
             
             let denStr = '';
@@ -1087,8 +1102,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     [plant_s0 + (C_num_s1 * plant_num * H), 's'],
                     [C_num_s0 * plant_num * H, '']
                 );
-            }
-            else {
+            } else {
                 denStr = tfPoly(
                     [plant_s2, 's^4'],
                     [plant_s1, 's^3'],
@@ -1097,14 +1111,35 @@ document.addEventListener("DOMContentLoaded", () => {
                     [C_num_s0 * plant_num * H, '']
                 );
             }
-            htmlContent = `<p>${title}</p>$$ T(s) = \\frac{${numStr || '0'}}{${denStr || '1'}} $$`;
 
-        }
-        else {
-            title = 'Fungsi Alih Sistem <strong>Open-Loop</strong>:';
+            htmlContent += `
+                <div style="margin-bottom: 20px; border-bottom: 1px dashed #444; padding-bottom: 15px;">
+                    <p style="color: var(--color-warn); margin-bottom: 5px;"><strong>1. Fungsi Alih Tracking (Respon terhadap Setpoint):</strong></p>
+                    $$ \\frac{Y(s)}{R(s)} = \\frac{${numStrRef}}{${denStr}} $$
+                </div>
+            `;
+
+            htmlContent += `
+                <div style="margin-bottom: 20px; border-bottom: 1px dashed #444; padding-bottom: 15px;">
+                    <p style="color: var(--color-warn); margin-bottom: 5px;"><strong>2. Persamaan Respon Gangguan (Efek $T_L$):</strong></p>
+                    $$ Y_{dist}(s) = \\left[ \\frac{${numStrDist}}{${denStr}} \\right] \\times (${valTL}) $$
+                </div>
+            `;
+
+            htmlContent += `
+                <div>
+                    <p style="color: var(--color-text); margin-bottom: 5px;"><strong>3. Persamaan Respon Total Output:</strong></p>
+                    $$ Y_{total}(s) = \\underbrace{ \\left[ \\frac{Y}{R} \\right] (${valR}) }_{\\text{Tracking}} + \\underbrace{ \\left[ \\frac{Y}{T_L} \\right] (${valTL}) }_{\\text{Disturbance}} $$
+                </div>
+            `;
+            
+            elements.toggleTfButton.textContent = 'Model Matematis Sistem (Closed Loop)';
+
+        } else {
+            const title = 'Fungsi Alih Sistem <strong>Open-Loop</strong> (Plant):';
             elements.toggleTfButton.textContent = 'Fungsi Alih Sistem (Open Loop)';
 
-            const numStr = plant_num.toExponential(2);
+            const numStr = formatScientific(plant_num);
             const denStr = tfPoly(
                 [plant_s2, 's^2'],
                 [plant_s1, 's'],
@@ -1112,10 +1147,9 @@ document.addEventListener("DOMContentLoaded", () => {
             );
 
             if (plantType === '1') {
-                htmlContent = `<p>${title}</p>$$ G_\\omega(s) = \\frac{\\omega(s)}{V(s)} = \\frac{${numStr}}{${denStr}} $$`;
-            }
-            else {
-                htmlContent = `<p>${title}</p>$$ G_p(s) = \\frac{\\theta(s)}{V(s)} = \\frac{${numStr}}{s(${denStr})} $$`;
+                htmlContent = `<p>${title}</p>$$ G_\\omega(s) = \\frac{${numStr}}{${denStr}} $$`;
+            } else {
+                htmlContent = `<p>${title}</p>$$ G_\\theta(s) = \\frac{${numStr}}{s(${denStr})} $$`;
             }
         }
         

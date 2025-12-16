@@ -371,45 +371,80 @@
                         <li>Kontroler <strong>PD</strong> seringkali lebih efektif daripada PI.</li>
                         <li>$K_p$ bertindak seperti "kekakuan pegas" (spring stiffness) virtual. Semakin besar, semakin kuat motor menuju target, namun semakin memantul (overshoot).</li>
                         <li>$K_d$ bertindak sebagai "peredam kejut" (shock absorber). Gunakan $K_d$ untuk meredam overshoot yang disebabkan oleh $K_p$.</li>
-                        <li>Gunakan $K_i$ kecil hanya jika posisi akhir tidak tercapai secara presisi (contoh: ada beban gravitasi).</li>
                     </ul>
                 </li>
             </ul>
 
-            <hr style="border: 0; border-top: 1px solid var(--color-border); margin: 15px 0;">
+            <h4>4. Arsitektur Sistem & Respon Gangguan (Disturbance)</h4>
+            <p>Memahami bagaimana sistem bereaksi terhadap gangguan eksternal (seperti beban mendadak) sama pentingnya dengan mencapai target.</p>
+            
+            <div style="margin-bottom: 20px; overflow-x: auto; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 8px; border: 1px solid var(--color-border);">
+                <svg width="650" height="120" viewBox="0 0 650 120" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#d4d4d4" /></marker>
+                    </defs>
+                    <text x="10" y="65" fill="#fff" font-size="12">R(s)</text>
+                    <line x1="40" y1="60" x2="70" y2="60" stroke="#fff" stroke-width="2" marker-end="url(#arrow)" />
+                    <circle cx="80" cy="60" r="10" stroke="#fff" stroke-width="2" fill="none" /> <text x="74" y="65" fill="#fff" font-size="14">+</text><text x="80" y="80" fill="#fff" font-size="14">-</text>
+                    
+                    <rect x="110" y="35" width="50" height="50" stroke="#00aaff" stroke-width="2" fill="none" rx="5" />
+                    <text x="120" y="65" fill="#00aaff" font-size="12" font-weight="bold">PID</text>
+                    <line x1="160" y1="60" x2="190" y2="60" stroke="#fff" stroke-width="2" marker-end="url(#arrow)" />
+                    
+                    <rect x="190" y="35" width="60" height="50" stroke="#00ff88" stroke-width="2" fill="none" rx="5" />
+                    <text x="205" y="65" fill="#00ff88" font-size="12" font-weight="bold">Elek.</text>
+                    <line x1="250" y1="60" x2="280" y2="60" stroke="#fff" stroke-width="2" marker-end="url(#arrow)" />
+                    
+                    <circle cx="290" cy="60" r="10" stroke="#fff" stroke-width="2" fill="none" /> <line x1="290" y1="10" x2="290" y2="45" stroke="#ff4d4d" stroke-width="2" marker-end="url(#arrow)" />
+                    <text x="275" y="20" fill="#ff4d4d" font-size="11" font-weight="bold">TL(s)</text>
+                    <text x="290" y="45" fill="#fff" font-size="14">-</text> <text x="284" y="65" fill="#fff" font-size="14">+</text>
 
-            <h4>4. Analisis Kestabilan & Frekuensi (Advanced)</h4>
-            <p>Gunakan panel grafik bagian bawah untuk analisis mendalam (Bode Plot & S-Plane). Fitur ini membantu memprediksi apakah sistem "tangguh" (robust) terhadap gangguan. Variasikan nilai torsi beban pada bagian "Gangguan Eksternal" untuk mengamati bagaimana respon sistem saat diberi gangguan. Anda juga dapat memvariasikan nilai <i>gain</i> dari sensor pada bagian "Feedback Sensor Gain" untuk mengamati pengaruh keandalan sensor terhadap respon sistem (nilai <i>default</i> adalah 1 yang berarti sensor berlaku ideal).</p>
+                    <rect x="320" y="35" width="60" height="50" stroke="#00ff88" stroke-width="2" fill="none" rx="5" />
+                    <text x="335" y="65" fill="#00ff88" font-size="12" font-weight="bold">Mek.</text>
+                    <line x1="380" y1="60" x2="450" y2="60" stroke="#fff" stroke-width="2" marker-end="url(#arrow)" />
+                    <text x="460" y="65" fill="#fff" font-size="12">Output</text>
+                    
+                    <line x1="420" y1="60" x2="420" y2="100" stroke="#fff" stroke-width="2" />
+                    <line x1="420" y1="100" x2="80" y2="100" stroke="#fff" stroke-width="2" />
+                    <line x1="80" y1="100" x2="80" y2="75" stroke="#fff" stroke-width="2" marker-end="url(#arrow)" />
+                </svg>
+            </div>
+            
+            <p><strong>Analisis Matematis:</strong> Sistem ini linear, sehingga berlaku prinsip Superposisi. Total Output adalah penjumlahan dari respon terhadap Setpoint dan respon terhadap Gangguan.</p>
+            <table style="width:100%; border-collapse: collapse; margin-bottom: 20px;">
+                <tr>
+                    <td style="padding: 10px; border-left: 3px solid var(--color-primary); background: rgba(0, 170, 255, 0.05);">
+                        <strong>Tracking Mode ($T_L = 0$)</strong><br>
+                        Sistem berusaha mengejar target $R$.<br>
+                        $$Y_1(s) = T_{ref}(s) \cdot R(s)$$
+                    </td>
+                    <td style="padding: 10px; border-left: 3px solid var(--color-danger); background: rgba(255, 77, 77, 0.05);">
+                        <strong>Regulator Mode ($R = 0$)</strong><br>
+                        Sistem berusaha menolak gangguan $T_L$.<br>
+                        $$Y_2(s) = T_{dist}(s) \cdot T_L(s)$$
+                    </td>
+                </tr>
+            </table>
+
+            <h4>5. Analisis Kestabilan & Frekuensi (Advanced)</h4>
+            <p>Gunakan panel grafik bagian bawah untuk analisis mendalam (Bode Plot & S-Plane). Fitur ini membantu memprediksi apakah sistem "tangguh" (robust) terhadap gangguan.</p>
 
             <h4>A. Interpretasi Bode Plot (Respon Frekuensi)</h4>
-            
-            <p>Grafik ini terbagi menjadi dua bagian (Split View):</p>
             <ul>
-                <li><strong>Grafik Atas (Garis Biru):</strong> Menunjukkan <em>Magnitudo</em> (Kuat Sinyal) dalam dB.
+                <li><strong>Grafik Atas (Garis Biru):</strong> Menunjukkan <em>Magnitudo</em> (Kuat Sinyal) dalam dB. Perhatikan titik crossover 0 dB.</li>
+                <li><strong>Grafik Bawah (Garis Oranye):</strong> Menunjukkan <em>Fasa</em>.
                     <ul>
-                        <li>Perhatikan titik dimana garis biru memotong <strong>garis putus-putus 0 dB</strong> (Crossover Frequency).</li>
-                    </ul>
-                </li>
-                <li><strong>Grafik Bawah (Garis Oranye):</strong> Menunjukkan <em>Fasa</em> (Keterlambatan) dalam derajat.
-                    <ul>
-                        <li><strong>Phase Margin (PM):</strong> Lihat nilai garis oranye saat garis biru menyentuh 0 dB. Jarak ke garis putus-putus -180° adalah batas keamanan Anda.</li>
-                        <li><strong>Target:</strong> PM > 45°. Jika kurang dari itu, sistem akan berosilasi hebat saat diberi beban mendadak.</li>
+                        <li><strong>Phase Margin (PM):</strong> Jarak grafik fasa ke garis -180° saat Gain = 0 dB.</li>
+                        <li><strong>Target:</strong> PM > 45°. Jika kurang, sistem akan berosilasi hebat (overshoot tinggi) saat diberi beban.</li>
                     </ul>
                 </li>
             </ul>
 
             <h4>B. Interpretasi S-Plane (Root Locus)</h4>
-            
-            <p>Peta lokasi akar-akar karakteristik sistem tertutup.</p>
             <ul>
-                <li><strong>Simbol 'X' Merah:</strong> Menunjukkan lokasi <em>Closed-Loop Poles</em> saat ini.</li>
-                <li><strong>Area Stabil:</strong> Seluruh pole wajib berada di <strong>Sebelah Kiri</strong> sumbu vertikal (Nilai Real Negatif).</li>
-                <li><strong>Analisis Gerak:</strong>
-                    <ul>
-                        <li>Semakin ke <strong>Kiri</strong>: Respon semakin cepat (Settling time pendek).</li>
-                        <li>Semakin menjauh dari <strong>Sumbu Tengah</strong> (vertikal): Sistem semakin berosilasi (Underdamped).</li>
-                    </ul>
-                </li>
+                <li><strong>Simbol 'X' Merah:</strong> Lokasi <em>Closed-Loop Poles</em>.</li>
+                <li><strong>Area Stabil:</strong> Seluruh pole wajib berada di <strong>Sebelah Kiri</strong> sumbu vertikal (Real Negatif).</li>
+                <li><strong>Posisi Pole Baru ($s_3$):</strong> Saat menggunakan PID, akan muncul pole baru. Perhatikan pergerakannya; jika pole ini bergerak terlalu dekat ke sumbu kanan, sistem menjadi tidak stabil.</li>
             </ul>
         </div>
     </div>
