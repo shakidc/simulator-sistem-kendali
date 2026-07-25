@@ -228,7 +228,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         elements.runButton.addEventListener('click', () => {
             if (currentSimulationData.t) {
-                animateMotor(currentSimulationData);
+                //animateMotor(currentSimulationData);
+                animateMotor(currentSimulationData, readParameters());
             }
         });
 
@@ -1230,72 +1231,219 @@ document.addEventListener("DOMContentLoaded", () => {
         MathJax.typesetPromise([elements.analysisContainer]);
     }
 
-    function animateMotor(data) {
-        const { y, t } = data;
-        const canvas = elements.motorCanvas;
-        const ctx = canvas.getContext('2d');
-        const width = 400;
-        const height = 200;
-        canvas.width = width;
-        canvas.height = height;
+    // ==========================================
+    // 3D DIGITAL TWIN ENGINE (Three.js)
+    // ==========================================
+    let threeScene, threeCamera, threeRenderer, orbitControls;
+    let motorShaft, roboticArm, targetArm, speedIndicator;
+    let animationFrameId = null;
+    let hudOverlay = null;
 
-        const centerX = width / 2;
-        const centerY = height / 2 - 20;
-        const radius = 50;
+    function init3DEnvironment() {
+        const container = elements.animationContainer;
+        
+        // Hapus elemen canvas 2D bawaan jika masih ada
+        const oldCanvas = document.getElementById('motor-canvas');
+        if (oldCanvas) oldCanvas.remove();
+
+        // Setup HUD (Head-Up Display) Overlay berbasis HTML/CSS
+        if (!hudOverlay) {
+            container.style.position = 'relative'; // Agar HUD menempel relatif ke kontainer
+            hudOverlay = document.createElement('div');
+            hudOverlay.style.position = 'absolute';
+            hudOverlay.style.top = '15px';
+            hudOverlay.style.right = '20px';
+            hudOverlay.style.textAlign = 'right';
+            hudOverlay.style.pointerEvents = 'none'; // Agar mouse bisa menembus HUD ke 3D Canvas
+            hudOverlay.style.zIndex = '10';
+            hudOverlay.style.background = 'rgba(0, 0, 0, 0.4)';
+            hudOverlay.style.padding = '10px 15px';
+            hudOverlay.style.borderRadius = '8px';
+            hudOverlay.style.border = '1px solid #444';
+            container.appendChild(hudOverlay);
+        }
+
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        // 1. Inisialisasi Scene, Kamera & Renderer
+        threeScene = new THREE.Scene();
+        // Latar transparan untuk menyatu dengan background gradient CSS Anda
+        threeScene.background = null; 
+
+        threeCamera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+        threeCamera.position.set(20, 15, 30); // Posisi awal kamera (Isometrik)
+
+        threeRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        threeRenderer.setSize(width, height);
+        container.appendChild(threeRenderer.domElement);
+
+        // 2. Orbit Controls (Interaksi Pan, Zoom, Rotate)
+        orbitControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
+        orbitControls.enableDamping = true;
+        orbitControls.dampingFactor = 0.05;
+
+        // 3. Pencahayaan (Phong) - Sederhana tapi Elegan
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        threeScene.add(ambientLight);
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 20, 15);
+        threeScene.add(dirLight);
+
+        // 4. PEMODELAN PROSEDURAL MOTOR DC
+        
+        // A. Stator (Body Motor) & Base Mount
+        const statorGeo = new THREE.CylinderGeometry(6, 6, 14, 32);
+        const statorMat = new THREE.MeshPhongMaterial({ color: 0x4a4a4a, shininess: 50 });
+        const stator = new THREE.Mesh(statorGeo, statorMat);
+        stator.rotation.x = Math.PI / 2;
+        threeScene.add(stator);
+
+        const mountGeo = new THREE.BoxGeometry(10, 2, 10);
+        const mountMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
+        const mount = new THREE.Mesh(mountGeo, mountMat);
+        mount.position.set(0, -6.5, 0);
+        threeScene.add(mount);
+
+        // B. Poros Rotor (Shaft)
+        const shaftGeo = new THREE.CylinderGeometry(1.2, 1.2, 22, 16);
+        const shaftMat = new THREE.MeshPhongMaterial({ color: 0xcccccc, shininess: 80 });
+        motorShaft = new THREE.Mesh(shaftGeo, shaftMat);
+        motorShaft.rotation.x = Math.PI / 2;
+        threeScene.add(motorShaft);
+
+        // C. Indikator Putaran (Balok kecil di poros untuk Mode Kecepatan)
+        const indGeo = new THREE.BoxGeometry(4, 4, 1.5);
+        const indMat = new THREE.MeshPhongMaterial({ color: 0x00c7ff });
+        speedIndicator = new THREE.Mesh(indGeo, indMat);
+        speedIndicator.position.set(0, 10, 0); // Di ujung depan poros
+        motorShaft.add(speedIndicator);
+
+        // D. Lengan Robot (Untuk Mode Posisi)
+        const armGeo = new THREE.BoxGeometry(1.5, 12, 1.5);
+        armGeo.translate(0, 6, 0); // Geser pivot anchor point ke bagian bawah lengan
+        const armMat = new THREE.MeshPhongMaterial({ color: 0x00aaff });
+        roboticArm = new THREE.Mesh(armGeo, armMat);
+        roboticArm.position.set(0, 0, 9); // Ditempelkan ke sumbu global Z=9 (ujung poros)
+        threeScene.add(roboticArm);
+
+        // E. Target Bayangan (Ghost Setpoint)
+        const targetGeo = new THREE.BoxGeometry(1.5, 12, 1.5);
+        targetGeo.translate(0, 6, 0);
+        const targetMat = new THREE.MeshPhongMaterial({ 
+            color: 0xff4d4d, 
+            transparent: true, 
+            opacity: 0.35 
+        });
+        targetArm = new THREE.Mesh(targetGeo, targetMat);
+        targetArm.position.set(0, 0, 9);
+        threeScene.add(targetArm);
+
+        // Menangani Resize Window
+        window.addEventListener('resize', () => {
+            const newWidth = container.clientWidth;
+            const newHeight = container.clientHeight;
+            threeRenderer.setSize(newWidth, newHeight);
+            threeCamera.aspect = newWidth / newHeight;
+            threeCamera.updateProjectionMatrix();
+        });
+    }
+
+    function animateMotor(data, params) {
+        const { y, t } = data;
+        // Tambahkan isPIDEnabled dari params
+        const { plantType, setpoint, isPIDEnabled } = params; 
+        
+        // Inisialisasi Environment hanya jika belum dirender (Lazy Loading)
+        if (!threeScene) {
+            init3DEnvironment();
+        }
+
+        const isSpeedControl = (plantType === '1');
+
+        // Toggle visibilitas objek berdasarkan mode kendali
+        if (isSpeedControl) {
+            speedIndicator.visible = true;
+            roboticArm.visible = false;
+            targetArm.visible = false;
+        } else {
+            speedIndicator.visible = false;
+            roboticArm.visible = true;
+            
+            // Lengan bayangan (target) HANYA ditampilkan jika Closed-Loop (PID) aktif
+            if (isPIDEnabled) {
+                targetArm.visible = true;
+                targetArm.rotation.z = setpoint; 
+            } else {
+                targetArm.visible = false; // Sembunyikan bayangan jika Open-Loop
+            }
+        }
+
         let frame = 0;
-        let animationFrameId = null;
 
         function drawFrame() {
             if (frame >= t.length) {
                 cancelAnimationFrame(animationFrameId);
                 return;
             }
-            
+
             let angle;
-            if (elements.plantType.value === '1') {
+            if (isSpeedControl) {
+                // Konversi kecepatan menjadi sudut kumulatif untuk animasi
                 const dt_anim = t[1] - t[0];
                 let integratedAngle = 0;
                 for (let i=0; i<=frame; i++) {
                     integratedAngle += y[i] * dt_anim;
                 }
                 angle = integratedAngle;
-            }
-            else {
+            } else {
+                // Pada mode posisi, y[t] adalah nilai sudut aktual
                 angle = y[frame];
             }
 
-            ctx.clearRect(0, 0, width, height);
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius + 20, 0, 2 * Math.PI);
-            ctx.fillStyle = 'rgba(0, 170, 255, 0.3)';
-            ctx.fill();
-            ctx.strokeStyle = '#888';
-            ctx.lineWidth = 4;
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-            ctx.fillStyle = 'rgba(50, 50, 50, 1)';
-            ctx.fill();
-            const lineX = centerX + radius * Math.cos(angle);
-            const lineY = centerY + radius * Math.sin(angle);
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.lineTo(lineX, lineY);
-            ctx.strokeStyle = colorDanger; 
-            ctx.lineWidth = 4;
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, 8, 0, 2 * Math.PI);
-            ctx.fillStyle = colorDanger;
-            ctx.fill();
-            const displayValue = y[frame];
-            ctx.font = `bold 24px ${fontMono}`;
-            ctx.fillStyle = colorSecondary;
-            ctx.textAlign = "center";
-            ctx.fillText(displayValue.toFixed(3), centerX + radius + 20, centerY + radius + 40);
-            ctx.font = `24px ${fontMain}`;
-            ctx.fillStyle = colorWarn;
-            ctx.fillText(elements.plantType.value === '1' ? 'Kecepatan' : 'Posisi', centerX - radius - 20, centerY + radius + 40);
+            // Putar poros motor
+            motorShaft.rotation.y = angle;
+            
+            // Putar lengan robot 
+            if (!isSpeedControl) {
+                roboticArm.rotation.z = angle;
+            }
+
+            // Update damping/inersia dari orbit controls
+            orbitControls.update();
+            
+            // Render scene
+            threeRenderer.render(threeScene, threeCamera);
+
+            // --- UPDATE TEKS HUD ---
+            const modeText = isSpeedControl ? 
+                '<span style="color: var(--color-secondary);">SPEED MODE</span>' : 
+                '<span style="color: var(--color-danger);">POSITION (SERVO) MODE</span>';
+            const unit = isSpeedControl ? 'rad/s' : 'rad';
+            const currentVal = y[frame].toFixed(3);
+            const inputVal = setpoint.toFixed(2);
+            const currentTime = t[frame].toFixed(3);
+
+            // Logika kondisional teks indikator bawah
+            let bottomTextHTML = "";
+            if (isPIDEnabled) {
+                bottomTextHTML = `Target: ${inputVal} ${unit}`;
+            } else {
+                bottomTextHTML = `Tegangan Masukan: ${inputVal} V`;
+            }
+
+            hudOverlay.innerHTML = `
+                <div style="font-family: var(--font-title); font-size: 1.1rem; font-weight: bold; margin-bottom: 5px;">
+                    ${modeText} ${!isPIDEnabled ? '<span style="font-size: 0.8rem; color: #888;">(OPEN-LOOP)</span>' : ''}
+                </div>
+                <div style="font-size: 0.9rem; color: #aaa; margin-bottom: 10px; font-family: var(--font-mono);">t = ${currentTime} s</div>
+                <div style="font-size: 2rem; font-family: var(--font-mono); font-weight: bold; color: #fff;">
+                    ${currentVal} <span style="font-size: 1rem; color: #888; font-family: var(--font-main);">${unit}</span>
+                </div>
+                <div style="font-size: 1rem; color: #888; font-family: var(--font-main);">
+                    ${bottomTextHTML}
+                </div>
+            `;
 
             frame++;
             animationFrameId = requestAnimationFrame(drawFrame);
