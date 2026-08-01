@@ -228,15 +228,33 @@
                 </div>
             </div>
 
+            <div class="panel-section" style="border-color: rgba(255, 77, 77, 0.5);">
+                <h3 style="color: var(--color-danger);">Dinamika Termal</h3>
+                <div class="slider-group">
+                    <label for="Cth">Kapasitas Panas ($C_{th}$) [J/°C]</label>
+                    <div class="slider-wrapper">
+                        <input type="range" id="Cth" min="0.1" max="50" value="5.0" step="0.1" class="slider">
+                        <input type="number" id="Cth-value" min="0.1" max="50" value="5.0" step="0.1" class="slider-value input-sync">
+                    </div>
+                </div>
+                <div class="slider-group">
+                    <label for="hA">Koef. Pendinginan ($hA$) [W/°C]</label>
+                    <div class="slider-wrapper">
+                        <input type="range" id="hA" min="0.0" max="10.0" value="1.0" step="0.1" class="slider">
+                        <input type="number" id="hA-value" min="0.0" max="10.0" value="1.0" step="0.1" class="slider-value input-sync">
+                    </div>
+                </div>
+            </div>
+
             <div class="panel-section">
                 <h3>Konfigurasi Simulasi</h3>
                 <div class="input-group">
                     <label for="t-sim">Durasi Simulasi (detik):</label>
-                    <input type="number" id="t-sim" value="5" step="1" class="input-field">
+                    <input type="number" id="t-sim" value="5" step="0.001" min="0.001" class="input-field">
                 </div>
                 <div class="input-group">
                     <label for="dt-sim">Time Step (ms):</label>
-                    <input type="number" id="dt-sim" value="0.01" step="0.01" class="input-field">
+                    <input type="number" id="dt-sim" value="0.01" step="0.01" min="0.01" class="input-field">
                 </div>
                 <button id="run-button" class="run-button">PUTAR ULANG ANIMASI</button>
             </div>
@@ -250,6 +268,7 @@
                 <button class="modal-button" data-modal="modal-robust">Sistem Robust</button>
                 <button class="modal-button" data-modal="modal-kestabilan">Analisis Root Locus & Kestabilan</button>
                 <button class="modal-button" data-modal="modal-pid">Tuning PID</button>
+                <button class="modal-button" data-modal="modal-termal" style="border-color: var(--color-danger); color: var(--color-danger);">Dinamika Termal</button>
             </nav>
 
             <div class="content-section">
@@ -678,6 +697,37 @@
                 <li><strong>Integrator Windup:</strong> Bahaya laten pada kendali dengan term Integral ($K_i$). Saat aktuator jenuh (mentok di $V_{max}$), error tetap ada. Integral akan terus menjumlahkan error tersebut hingga nilainya sangat besar. Akibatnya, saat target tercapai, sistem "lupa mengerem" karena nilai integral masih sangat besar, menyebabkan overshoot ekstrim.</li>
                 <li><i>Simulasi ini telah dilengkapi algoritma Anti-Windup (Clamping) untuk merepresentasikan controller industri modern.</i></li>
             </ul>
+        </div>
+    </div>
+
+    <div id="modal-termal" class="modal">
+        <div class="modal-content" style="border-top: 4px solid var(--color-danger);">
+            <span class="close-btn" data-modal="modal-termal">&times;</span>
+            <h2>Dinamika Termal Motor DC</h2>
+            <p>Panas yang dihasilkan oleh motor akibat rugi-rugi resistif tembaga (<em>Joule Heating</em>) sangat mempengaruhi performa secara <em>real-time</em>. Simulasi ini mengukur kenaikan suhu dan dampaknya secara langsung.</p>
+            
+            <h3>1. Persamaan Panas (Heat Equation)</h3>
+            <p>Perubahan suhu motor ($\Delta T$) ditentukan oleh selisih antara daya disipasi ($P_{loss}$) dan daya panas yang dibuang ke lingkungan ($P_{cool}$), dibagi dengan Kapasitas Panas ($C_{th}$).</p>
+            $$ P_{loss} = i^2 \cdot R_a $$
+            $$ P_{cool} = hA \cdot (T - T_{amb}) $$
+            $$ \frac{dT}{dt} = \frac{P_{loss} - P_{cool}}{C_{th}} $$
+            
+            <h3>2. Degradasi Parameter Fisis</h3>
+            <p>Saat suhu ($T$) naik melampaui suhu ruangan ($T_{amb} = 25^\circ C$), sifat fundamental motor berubah:</p>
+            <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px;">
+                <div style="flex: 1; min-width: 300px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px;">
+                    <strong>Kenaikan Resistansi Tembaga ($R_a$)</strong><br>
+                    Kawat tembaga menjadi lebih resistif, menghambat arus dan menurunkan kemampuan torsi.
+                    $$ R_a(T) = R_{a0} [1 + \alpha_{Cu} (T - T_{amb})] $$
+                    <small><em>$\alpha_{Cu} \approx 0.00393 /^\circ C$</em></small>
+                </div>
+                <div style="flex: 1; min-width: 300px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 5px;">
+                    <strong>Pelemahan Fluks Magnet ($K_t$ & $K_b$)</strong><br>
+                    Magnet permanen melemah pada suhu tinggi, menurunkan Konstanta Torsi dan GGL Balik.
+                    $$ K_t(T) = K_{t0} [1 - \alpha_{Mag} (T - T_{amb})] $$
+                    <small><em>$\alpha_{Mag} \approx 0.002 /^\circ C$</em></small>
+                </div>
+            </div>
         </div>
     </div>
     

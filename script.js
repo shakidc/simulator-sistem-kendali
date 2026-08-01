@@ -108,6 +108,9 @@ document.addEventListener("DOMContentLoaded", () => {
         TL: document.getElementById('TL'),
         TLValue: document.getElementById('TL-value'),
 
+        Cth: document.getElementById('Cth'),
+        hA: document.getElementById('hA'),
+
         plotBodeContainer: document.getElementById('plot-bode-container'),
         plotStabilityContainer: document.getElementById('plot-stability-container'),
 
@@ -448,7 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const pNum = Kt;
 
         const freqs = [];
-        const numPoints = 100;
+        const numPoints = 150; // Resolusi dinaikkan sedikit untuk plot yang lebih halus
         const startExp = -1;
         const endExp = 3;
         
@@ -462,15 +465,16 @@ document.addEventListener("DOMContentLoaded", () => {
         
         freqs.forEach(w => {
             const s = { re: 0, im: w };
-            const s2 = C.mul(s, s);
+            const s2 = { re: -w * w, im: 0 }; // Hasil dari C.mul(s,s)
             
-            const term2 = { re: p2 * s2.re, im: p2 * s2.im };
-            const term1 = { re: p1 * s.re, im: p1 * s.im };
+            const term2 = { re: p2 * s2.re, im: 0 };
+            const term1 = { re: 0, im: p1 * w };
             const term0 = { re: p0, im: 0 };
             
             let den = C.add(C.add(term2, term1), term0);
             
-            if (plantType === '0') {
+            // PERBAIKAN MATEMATIS: plantType === '2' (Kendali Posisi), bukan '0'
+            if (plantType === '2') {
                 den = C.mul(den, s); 
             }
             
@@ -480,17 +484,14 @@ document.addEventListener("DOMContentLoaded", () => {
             
             if (isPIDEnabled) {
                 const Pterm = { re: Kp, im: 0 };
-                const Dterm = { re: -Kd * w * w, im: Kd * w };
-                const DtermCorr = { re: 0, im: Kd * w };
-                
+                // PERBAIKAN MATEMATIS: D-term murni s*Kd = j*w*Kd
+                const Dterm = { re: 0, im: Kd * w };
                 const Iterm = { re: 0, im: -Ki / w };
                 
-                ControllerVal = C.add(C.add(Pterm, DtermCorr), Iterm);
+                ControllerVal = C.add(C.add(Pterm, Dterm), Iterm);
                 
                 const HVal = { re: Kf, im: 0 };
                 ControllerVal = C.mul(ControllerVal, HVal);
-            } else {
-                 ControllerVal = { re: 1, im: 0 };
             }
 
             const LoopGain = C.mul(PlantVal, ControllerVal);
@@ -555,7 +556,7 @@ document.addEventListener("DOMContentLoaded", () => {
             type: 'scatter',
             mode: 'lines',
             line: { color: colorMag, width: 2 },
-            xaxis: 'x',
+            xaxis: 'x', // Shared X-Axis
             yaxis: 'y',
             showlegend: true
         };
@@ -567,7 +568,7 @@ document.addEventListener("DOMContentLoaded", () => {
             type: 'scatter',
             mode: 'lines',
             line: { color: colorPhase, width: 2 },
-            xaxis: 'x',
+            xaxis: 'x', // Shared X-Axis
             yaxis: 'y2',
             showlegend: true
         };
@@ -577,7 +578,7 @@ document.addEventListener("DOMContentLoaded", () => {
             mode: 'lines', name: 'Ref 0 dB',
             line: { color: colorRef, dash: 'dot', width: 1 },
             xaxis: 'x', yaxis: 'y',
-            showlegend: true
+            showlegend: false
         };
 
         const line180Deg = {
@@ -585,45 +586,47 @@ document.addEventListener("DOMContentLoaded", () => {
             mode: 'lines', name: 'Ref -180°',
             line: { color: colorRef, dash: 'dot', width: 1 },
             xaxis: 'x', yaxis: 'y2',
-            showlegend: true
+            showlegend: false
         };
 
         const layoutBode = {
-            grid: { rows: 2, columns: 1, pattern: 'independent' },
-            title: 'Bode Plot (Frequency Response)',
+            title: 'Bode Plot (Respon Frekuensi)',
             titlefont: { color: colorText, family: 'Segoe UI' },
             paper_bgcolor: 'rgba(0,0,0,0)',
             plot_bgcolor: 'rgba(0,0,0,0)',
             font: { color: colorText, family: 'Segoe UI' },
             showlegend: true,
-            legend: { x: 1, xanchor: 'right', y: 1 },
+            legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.1 },
+            hovermode: 'x unified', // Menggabungkan tooltip untuk pembacaan titik potong yang mudah
+            hoverlabel: { 
+                bgcolor: '#222222', 
+                font: { color: '#ffffff' }, // Perbaikan warna teks hover (kontras)
+                bordercolor: 'rgba(255,255,255,0.2)' 
+            },
             
             xaxis: { 
                 type: 'log', 
-                showticklabels: false,
+                title: 'Frekuensi (rad/s)', 
                 gridcolor: colorGrid, 
                 range: [-1, 3] 
             },
             yaxis: { 
                 title: 'Magnitude (dB)', 
+                titlefont: { color: colorMag },
+                tickfont: { color: colorMag },
                 gridcolor: colorGrid,
-                domain: [0.55, 1]
-            },
-            
-            xaxis2: { 
-                type: 'log', 
-                title: 'Frekuensi (rad/s)', 
-                gridcolor: colorGrid, 
-                range: [-1, 3],
-                anchor: 'y2'
+                // Hilangkan domain, biarkan menggunakan full tinggi grafik
             },
             yaxis2: { 
                 title: 'Phase (deg)', 
-                gridcolor: colorGrid,
-                domain: [0, 0.45],
+                titlefont: { color: colorPhase },
+                tickfont: { color: colorPhase },
+                overlaying: 'y', // INI KUNCI AGAR GRAFIK BERTUMPUK (OVERLAY)
+                side: 'right',   // Sumbu Y fasa dipindah ke kanan
+                showgrid: false, // Matikan grid agar tidak menabrak grid magnitude
                 range: [-270, 90]
             },
-            margin: { t: 40, b: 40, l: 60, r: 20 }
+            margin: { t: 60, b: 40, l: 60, r: 60 } // Margin kanan diperbesar untuk sumbu ganda
         };
         
         Plotly.newPlot(elements.plotBodeContainer, [traceMag, line0dB, tracePhase, line180Deg], layoutBode, { responsive: true, displayModeBar: true });
@@ -677,6 +680,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         Plotly.newPlot(elements.plotStabilityContainer, [tracePoles], layoutSPlane, { responsive: true, displayModeBar: true });
 
+        // (Sisa logika tabel Robustness tetap sama seperti kode Anda sebelumnya)
         let robustHTML = '';
 
         if (isPIDEnabled) {
@@ -786,10 +790,13 @@ document.addEventListener("DOMContentLoaded", () => {
             setpoint: parseFloat(elements.setpoint.value),
             
             Kf: parseFloat(elements.Kf.value),
+
+            Cth: parseFloat(elements.Cth ? elements.Cth.value : 5.0),
+            hA: parseFloat(elements.hA ? elements.hA.value : 1.0),
             
             Vmax: Math.abs(parseFloat(elements.Vmax.value)),
             
-            tSim: Math.max(0.1, parseFloat(elements.tSim.value)),
+            tSim: Math.max(0.001, parseFloat(elements.tSim.value)),
             dt: Math.max(0.0001, parseFloat(elements.dtSim.value) / 1000),
             
             isPIDEnabled: elements.pidEnable.checked
@@ -797,7 +804,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function simulateSystem(params) {
-        const { Ra, La, Kt, Kb, J, b, TL, Kp, Ki, Kd, Kf, Vmax, setpoint, plantType, tSim, dt, isPIDEnabled } = params;
+        const { Ra, La, Kt, Kb, J, b, TL, Kp, Ki, Kd, Kf, Vmax, setpoint, plantType, tSim, dt, isPIDEnabled, Cth, hA } = params;
 
         const tau_e = La / Math.max(Ra, 1e-9); 
         const tau_m = J / Math.max(b, 1e-9);
@@ -812,42 +819,64 @@ document.addEventListener("DOMContentLoaded", () => {
         const u_clamped = new Array(nSamples).fill(0);
         const u_unclamped = new Array(nSamples).fill(0);
         const r = new Array(nSamples).fill(setpoint);
+        
+        // Array Termal untuk Plotting/Animasi
+        const T_array = new Array(nSamples).fill(0);
+        const Ra_array = new Array(nSamples).fill(0);
+        const Kt_array = new Array(nSamples).fill(0);
 
-        let x1 = 0; 
-        let x2 = 0; 
-        let x3 = 0;
+        let x1 = 0; // Posisi (Theta)
+        let x2 = 0; // Kecepatan (Omega)
+        let x3 = 0; // Arus (i)
 
         let integralTerm = 0;
         let prevPV = 0;
         let derivativeFilterState = 0;
-        let prevDerivativeTerm = 0;
         
         const tauD = 0.001;
         const alpha = dt / (tauD + dt); 
+        
+        // Konstanta Suhu
+        const Tamb = 25.0;
+        let T_current = Tamb; 
+        const alphaCu = 0.00393;
+        const alphaMag = 0.002;
 
-        const derivativeFunc = (currX, V, load) => {
+        // Modifikasi derivativeFunc agar menerima parameter yang berubah (Dinamika Suhu)
+        const derivativeFunc = (currX, V, load, R_dyn, Kt_dyn, Kb_dyn) => {
             const dx1 = currX[1];
-            
-            const torqueElectrical = Kt * currX[2];
+            const torqueElectrical = Kt_dyn * currX[2];
             const torqueFriction = b * currX[1];
             const torqueLoad = (currX[1] > 0 ? load : (currX[1] < 0 ? -load : 0)); 
             const dx2 = (torqueElectrical - torqueFriction - torqueLoad) / J;
-
-            const backEMF = Kb * currX[1];
-            const dx3 = (V - Ra * currX[2] - backEMF) / Math.max(La, 1e-12); 
-            
+            const backEMF = Kb_dyn * currX[1];
+            const dx3 = (V - R_dyn * currX[2] - backEMF) / Math.max(La, 1e-12); 
             return [dx1, dx2, dx3];
         };
 
         for (let i = 0; i < nSamples; i++) {
             const currentTime = i * dt;
-            
             t[i] = currentTime;
             y[i] = (plantType === '1') ? x2 : x1;
 
+            // --- 1. EVALUASI DINAMIKA TERMAL (EULER INTEGRATION) ---
+            const Ra_dyn = Ra * (1 + alphaCu * (T_current - Tamb));
+            const Kt_dyn = Kt * (1 - alphaMag * (T_current - Tamb));
+            const Kb_dyn = Kb * (1 - alphaMag * (T_current - Tamb));
+
+            const Ploss = x3 * x3 * Ra_dyn; // Joule Heating
+            const Pcool = hA * (T_current - Tamb); // Dissipation
+            
+            T_current += ((Ploss - Pcool) / Math.max(Cth, 0.01)) * dt;
+            
+            T_array[i] = T_current;
+            Ra_array[i] = Ra_dyn;
+            Kt_array[i] = Kt_dyn;
+
+            // --- 2. EVALUASI KENDALI PID ---
             let appliedVoltage = 0;
             let rawVoltage = 0;
-            const pv = (plantType === '1') ? x2 : x1;
+            const pv = y[i];
 
             if (isPIDEnabled) {
                 const feedback = pv * Kf; 
@@ -855,26 +884,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 
                 const proportionalTerm = Kp * error;
 
+                // Perbaikan D-Term: Evaluasi perubahan PV
                 const rawDerivative = - (pv - prevPV) / dt; 
-
                 derivativeFilterState = alpha * rawDerivative + (1 - alpha) * derivativeFilterState;
-                const derivativeTerm_unlimited = Kd * derivativeFilterState;
                 
-                const maxDChange = 10.0;
-                const maxDStep = maxDChange * dt;
-                
-                let derivativeTerm = derivativeTerm_unlimited;
-
-                if (derivativeTerm_unlimited - prevDerivativeTerm > maxDStep) {
-                    derivativeTerm = prevDerivativeTerm + maxDStep;
-                } else if (derivativeTerm_unlimited - prevDerivativeTerm < -maxDStep) {
-                    derivativeTerm = prevDerivativeTerm - maxDStep;
-                }
-                
-                prevDerivativeTerm = derivativeTerm;
+                // KUNCI PERBAIKAN: Limiter Slew-Rate dihapus total.
+                // Filter alfa (low-pass) sudah cukup menahan noise matematika.
+                const derivativeTerm = Kd * derivativeFilterState;
 
                 rawVoltage = proportionalTerm + integralTerm + derivativeTerm;
                 
+                // Clamping (Saturasi) Aktuator
                 if (rawVoltage > Vmax) appliedVoltage = Vmax;
                 else if (rawVoltage < -Vmax) appliedVoltage = -Vmax;
                 else appliedVoltage = rawVoltage;
@@ -882,6 +902,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 const isSaturated = (Math.abs(rawVoltage) > Vmax);
                 const isHelping = (rawVoltage * error < 0);
 
+                // Anti-Windup
                 if (!isSaturated || isHelping) {
                     integralTerm += Ki * error * dt;
                 }
@@ -897,26 +918,25 @@ document.addEventListener("DOMContentLoaded", () => {
             u_clamped[i] = appliedVoltage;
             u_unclamped[i] = rawVoltage;
 
+            // --- 3. EVALUASI FISIKA MOTOR (RK4) ---
             let timeAccumulator = 0;
-            
             while (timeAccumulator < dt) {
                 let step = dt_physics;
-                if (timeAccumulator + step > dt) {
-                    step = dt - timeAccumulator;
-                }
+                if (timeAccumulator + step > dt) step = dt - timeAccumulator;
 
                 const Xn = [x1, x2, x3]; 
-
-                const k1 = derivativeFunc(Xn, appliedVoltage, TL); 
                 
+                // Operkan parameter termal yang terdegradasi ke mesin RK4
+                const k1 = derivativeFunc(Xn, appliedVoltage, TL, Ra_dyn, Kt_dyn, Kb_dyn); 
                 const k2_state = [Xn[0] + 0.5 * k1[0] * step, Xn[1] + 0.5 * k1[1] * step, Xn[2] + 0.5 * k1[2] * step];
-                const k2 = derivativeFunc(k2_state, appliedVoltage, TL);
-
+                
+                const k2 = derivativeFunc(k2_state, appliedVoltage, TL, Ra_dyn, Kt_dyn, Kb_dyn);
                 const k3_state = [Xn[0] + 0.5 * k2[0] * step, Xn[1] + 0.5 * k2[1] * step, Xn[2] + 0.5 * k2[2] * step];
-                const k3 = derivativeFunc(k3_state, appliedVoltage, TL);
-
+                
+                const k3 = derivativeFunc(k3_state, appliedVoltage, TL, Ra_dyn, Kt_dyn, Kb_dyn);
                 const k4_state = [Xn[0] + k3[0] * step, Xn[1] + k3[1] * step, Xn[2] + k3[2] * step];
-                const k4 = derivativeFunc(k4_state, appliedVoltage, TL);
+                
+                const k4 = derivativeFunc(k4_state, appliedVoltage, TL, Ra_dyn, Kt_dyn, Kb_dyn);
 
                 x1 += (1/6) * (k1[0] + 2*k2[0] + 2*k3[0] + k4[0]) * step;
                 x2 += (1/6) * (k1[1] + 2*k2[1] + 2*k3[1] + k4[1]) * step;
@@ -926,7 +946,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
 
-        return { t, y, u_unclamped, u_clamped, r }; 
+        return { t, y, u_unclamped, u_clamped, r, T_array, Ra_array, Kt_array }; 
     }
 
     function plotResponse(data, params) {
@@ -1235,7 +1255,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // 3D DIGITAL TWIN ENGINE (Three.js)
     // ==========================================
     let threeScene, threeCamera, threeRenderer, orbitControls;
-    let motorShaft, roboticArm, targetArm, speedIndicator;
+    let motorShaft, roboticArm, targetArm, speedIndicator, stator;
     let animationFrameId = null;
     let hudOverlay = null;
 
@@ -1295,7 +1315,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // A. Stator (Body Motor) & Base Mount
         const statorGeo = new THREE.CylinderGeometry(6, 6, 14, 32);
         const statorMat = new THREE.MeshPhongMaterial({ color: 0x4a4a4a, shininess: 50 });
-        const stator = new THREE.Mesh(statorGeo, statorMat);
+        stator = new THREE.Mesh(statorGeo, statorMat); // <-- Modifikasi: 'stator' kini mengakses variabel global
         stator.rotation.x = Math.PI / 2;
         threeScene.add(stator);
 
@@ -1389,7 +1409,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
             let angle;
             if (isSpeedControl) {
-                // Konversi kecepatan menjadi sudut kumulatif untuk animasi
                 const dt_anim = t[1] - t[0];
                 let integratedAngle = 0;
                 for (let i=0; i<=frame; i++) {
@@ -1397,25 +1416,25 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
                 angle = integratedAngle;
             } else {
-                // Pada mode posisi, y[t] adalah nilai sudut aktual
                 angle = y[frame];
             }
 
-            // Putar poros motor
             motorShaft.rotation.y = angle;
-            
-            // Putar lengan robot 
-            if (!isSpeedControl) {
-                roboticArm.rotation.z = angle;
-            }
+            if (!isSpeedControl) roboticArm.rotation.z = angle;
 
-            // Update damping/inersia dari orbit controls
-            orbitControls.update();
+            // --- Logika Perubahan Warna Termal ---
+            const currentT = data.T_array[frame];
+            const maxT = 120.0; // Anggap 120 Celcius motor menyala merah kritis
+            const normT = Math.max(0, Math.min(1, (currentT - 25) / (maxT - 25)));
             
-            // Render scene
+            // Interpolasi warna dari Abu-abu (74,74,74) ke Merah Kritis (255, 34, 34)
+            const red = Math.floor(74 + (255 - 74) * normT);
+            const gb = Math.floor(74 + (34 - 74) * normT);
+            stator.material.color.setRGB(red/255, gb/255, gb/255);
+
+            orbitControls.update();
             threeRenderer.render(threeScene, threeCamera);
 
-            // --- UPDATE TEKS HUD ---
             const modeText = isSpeedControl ? 
                 '<span style="color: var(--color-secondary);">SPEED MODE</span>' : 
                 '<span style="color: var(--color-danger);">POSITION (SERVO) MODE</span>';
@@ -1424,13 +1443,10 @@ document.addEventListener("DOMContentLoaded", () => {
             const inputVal = setpoint.toFixed(2);
             const currentTime = t[frame].toFixed(3);
 
-            // Logika kondisional teks indikator bawah
-            let bottomTextHTML = "";
-            if (isPIDEnabled) {
-                bottomTextHTML = `Target: ${inputVal} ${unit}`;
-            } else {
-                bottomTextHTML = `Tegangan Masukan: ${inputVal} V`;
-            }
+            let bottomTextHTML = isPIDEnabled ? `Target: ${inputVal} ${unit}` : `Tegangan Masukan: ${inputVal} V`;
+            
+            // Warna font penunjuk suhu dinamis
+            const tColor = currentT > 80 ? 'var(--color-danger)' : (currentT > 50 ? 'var(--color-warn)' : 'var(--color-secondary)');
 
             hudOverlay.innerHTML = `
                 <div style="font-family: var(--font-title); font-size: 1.1rem; font-weight: bold; margin-bottom: 5px;">
@@ -1442,6 +1458,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 </div>
                 <div style="font-size: 1rem; color: #888; font-family: var(--font-main);">
                     ${bottomTextHTML}
+                </div>
+                <div style="margin-top: 15px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem; text-align: right;">
+                    <div style="color: ${tColor}; font-weight: bold; font-family: var(--font-mono);">Suhu Aktual: ${currentT.toFixed(1)} °C</div>
+                    <div style="color: #aaa; font-family: var(--font-mono);">R_a (Aktual): ${data.Ra_array[frame].toFixed(4)} Ω</div>
+                    <div style="color: #aaa; font-family: var(--font-mono);">K_t (Aktual): ${data.Kt_array[frame].toFixed(5)} Nm/A</div>
                 </div>
             `;
 
